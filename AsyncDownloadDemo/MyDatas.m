@@ -24,5 +24,4 @@
     return [[self alloc]initWithDict:dict];
 }
 
-
 @end

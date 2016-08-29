@@ -132,7 +132,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
             }];
-            [self startNextWaitingTask];
         }
         if (block) {
             block();
@@ -232,6 +231,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case DownloadingState:
             [thisTask.downloadTask cancel];
             [_downloadingTaskArray removeObject:thisTask];
+             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
                 [_fg removeItemAtPath:[thisTask.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",thisTask.saveFileName]] error:nil];
@@ -241,6 +241,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case WaitingState:
             [_waitingTaskArray removeObject:thisTask];
             [_resumeDataDictionary removeObjectForKey:thisTask.taskUrl];
+             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
                 [_fg removeItemAtPath:[thisTask.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",thisTask.saveFileName]] error:nil];
@@ -270,27 +271,22 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case DownloadingState:
             [task.downloadTask cancel];
             [_downloadingTaskArray removeObject:task];
+            [self startNextWaitingTask];
             if (isDelete && isExist) {
-                
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
-                
             }
             break;
         case WaitingState:
             [_waitingTaskArray removeObject:task];
             [_resumeDataDictionary removeObjectForKey:task.taskUrl];
+            [self startNextWaitingTask];
             if (isDelete && isExist) {
-                
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
-                
             }
             break;
         case FinishedState:
             if (isDelete && isExist) {
-                
-                
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
-                
             }
             break;
         default:
@@ -339,7 +335,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     //建立一个临时数组用来遍历用，因为不能同时对一个数组遍历和修改
     NSArray * tempArray = [NSArray arrayWithArray:_waitingTaskArray];
     for(MyDownloadTask * t in tempArray){
-        if (((t.taskState == WaitingState) || (t.taskState == PausingState)) && [_downloadingTaskArray count] < MAX_ASYNC_NUM && [_downloadingTaskArray count] > 1) {
+        //等待队列处于等待状态数量的大于0 || 等待队列处于暂停状态的数量大于1（防止刚暂停的又开启了）&& 小于最大并行数
+        if ((((t.taskState == WaitingState) && [_waitingTaskArray count] > 0) || ((t.taskState == PausingState) && [_waitingTaskArray count] > 1)) && [_downloadingTaskArray count] < MAX_ASYNC_NUM ) {
             if (t.taskState == WaitingState) {
                 [t.downloadTask resume];
             }else{
@@ -363,10 +360,11 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
         //通过URL获取task绑定的cell，然后操作cell中的进度条等控件
         MyDownloadTask * thisTask = [self findTaskWithURL:[[downloadTask.originalRequest URL]absoluteString]];
-        
-        thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100];
-        
-        [thisTask.cell.progressView setProgress:(double)totalBytesWritten/totalBytesExpectedToWrite animated:YES];
+        if (thisTask.cell) {
+            thisTask.progress = [NSNumber numberWithDouble:(float)totalBytesWritten/totalBytesExpectedToWrite*100];
+            thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[thisTask.progress doubleValue]];
+            [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
+        }
         
         //NSLog(@"percent is%@",[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
     }];

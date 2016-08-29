@@ -54,13 +54,49 @@
     }
     
     NSInteger count = indexPath.row;
-    MyDatas * data = _datas[count];
+    MyDatas* thisData = _datas[count];
     
-    MyDownloadTask * thisTask = [_manager bindCell:cell WithTaskURL:data.url];
-    [cell GenerateCellWithModel:data andTableView:tableView andTask:thisTask];
+    MyDownloadTask * thisTask = [_manager bindCell:cell WithTaskURL:thisData.url];
+    [cell GenerateCellWithModel:thisData andTableView:tableView andTask:thisTask];
+    cell.CancelHandlerBlock = ^(){
+        [_manager cancelDownloadTask:thisTask DeleteFile:YES complete:nil];
+        [_datas removeObject:thisData];
+        [_tableView reloadData];
+    };
+    __weak typeof(cell) weakcell = cell;
+    cell.StateHandlerBlock = ^(){
+        __strong typeof(weakcell) strongCell = weakcell;
+        switch (thisTask.taskState) {
+            case DownloadingState:{
+                //点击时正在下载，说明执行暂停逻辑
+                [_manager pauseDownloadTask:thisTask complete:^(){
+                    [strongCell.btn setTitle:@"开始" forState:UIControlStateNormal];
+                }];
+                break;
+            }
+            case PausingState:
+            {
+                //执行下载逻辑
+                [_manager restartDownloadTask:thisTask complete:^(){
+                    [strongCell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+                }Fail:nil];
+                
+                break;
+            }
+            case WaitingState:
+                [strongCell.btn setTitle:@"等待中" forState:UIControlStateNormal];
+                break;
+            default:
+                //TODO
+                break;
+        }
+
+    };
     
     return cell;
 }
+
+
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     return [_datas count];

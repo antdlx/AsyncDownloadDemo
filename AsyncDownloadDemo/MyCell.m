@@ -52,6 +52,7 @@
     CGColorRef colorref = CGColorCreate(colorSpace,(CGFloat[]){ 0, 0, 1, 1 });
     //这里不支持UIColor，所以只能使用调色板自己用RGBA设置
     [_btn.layer setBorderColor:colorref];
+    [_btn addTarget:self action:@selector(btnHandler:) forControlEvents:UIControlEventTouchDown];
     
     [self.contentView addSubview:_btn];
     
@@ -63,19 +64,22 @@
     //注意：设置按钮字体颜色不能使用button.titleLabel.textColor方式
     [_btnCancel setTitleColor:[UIColor blueColor]forState:UIControlStateNormal];
     [_btnCancel setTitle:@"X" forState:UIControlStateNormal];
+    [_btnCancel addTarget:self action:@selector(btnCancelHandler:) forControlEvents:UIControlEventTouchDown];
     [self.contentView addSubview:_btnCancel];
     
     _progressView = [[UIProgressView alloc]initWithFrame:CGRectMake(14, 53, 308, 2)];
-    [_progressView setProgress:0.2];
+    [_progressView setProgress:0.0];
     [self.contentView addSubview:_progressView];
     
     return self;
 }
 
+//UI渲染最好在Cell中实现
 -(void)GenerateCellWithModel:(MyDatas *)data andTableView:(UITableView *)tableview andTask:(MyDownloadTask *)task{
-//    _data = data;
+
     self.titleLabel.text = data.title;
     self.downloadTask = task;
+    self.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[task.progress doubleValue]];
     [self.btn addTarget:self action:@selector(btnHandler:) forControlEvents:UIControlEventTouchDown];
     switch (self.downloadTask.taskState) {
         case DownloadingState:
@@ -93,50 +97,15 @@
     }
 }
 
+//监听器最好在ViewController中实现
 -(void)btnHandler:(id)sender{
-    AsyncDownloadTaskManager * manager = [AsyncDownloadTaskManager shared];
-    switch (self.downloadTask.taskState) {
-        case DownloadingState:{
-            //点击时正在下载，说明执行暂停逻辑
-            [manager pauseDownloadTask:_downloadTask complete:^(){
-                [self.btn setTitle:@"开始" forState:UIControlStateNormal];
-            }];
-            break;
-        }
-        case PausingState:
-        {
-            //执行下载逻辑
-            [manager restartDownloadTask:_downloadTask complete:^(){
-                [self.btn setTitle:@"暂停" forState:UIControlStateNormal];
-            }Fail:nil];
-            
-            break;
-        }
-        case WaitingState:
-            [self.btn setTitle:@"等待中" forState:UIControlStateNormal];
-            break;
-        default:
-            //TODO
-            break;
-    }
-    
+    _StateHandlerBlock();
 }
 
-//-(void)btnCancelHandler:(id)sender{
-//    AsyncDownloadTaskManager * manager = [AsyncDownloadTaskManager shared];
-//    [manager cancelDownloadTask:self.downloadTask DeleteFile:YES complete:nil];
-//
-//    [_datas removeObject:_data];
+-(void)btnCancelHandler:(id)sender{
+    _CancelHandlerBlock();
+}
 
-//    ???
-//    [_tableView reloadRowsAtIndexPaths:@[_indexPath] withRowAnimation:UITableViewRowAnimationNone];
-//    [_tableView reloadData];
-//}
-//
-//-(void)bindTableView:(UITableView *)tableView cellAndIndexPath:(NSIndexPath *)path andDatas:(NSMutableArray *)datas{
-//    _tableView = tableView;
-//    _indexPath = path;
-//    _datas = datas;
-//}
+
 
 @end

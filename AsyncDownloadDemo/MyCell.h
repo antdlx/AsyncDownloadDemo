@@ -19,14 +19,10 @@
 @property(nonatomic,strong) UIButton * btn;
 @property(nonatomic,strong) UIButton * btnCancel;
 @property (nonatomic,strong) MyDownloadTask * downloadTask;
-//@property(nonatomic,strong) UITableView * tableView;
-//@property(nonatomic,strong) NSIndexPath * indexPath;
-//@property (nonatomic,strong) MyDatas * data;
-//@property (nonatomic,strong) NSMutableArray * datas;
+@property (nonatomic,copy) void (^CancelHandlerBlock)();
+@property (nonatomic,copy) void (^StateHandlerBlock)();
 
 //渲染cell的UI
 -(void)GenerateCellWithModel:(MyDatas *)data andTableView:(UITableView *)tableview andTask:(MyDownloadTask *)task;
-
--(void)bindTableView:(UITableView *)tableView cellAndIndexPath:(NSIndexPath *)path andDatas:(NSMutableArray *)datas;
 
 @end
