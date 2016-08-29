@@ -177,7 +177,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     
 }
 
-#pragma mark cancelFuns
+#pragma mark cancelFuncs
 
 -(void)cancelAllTaskAndFiles:(BOOL)isDelet{
     NSArray * tempDownTaskArray = [NSArray arrayWithArray:_downloadingTaskArray];

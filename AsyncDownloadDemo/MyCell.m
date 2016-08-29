@@ -78,10 +78,10 @@
 -(void)GenerateCellWithModel:(MyDatas *)data andTableView:(UITableView *)tableview andTask:(MyDownloadTask *)task{
 
     self.titleLabel.text = data.title;
-    self.downloadTask = task;
+//    self.downloadTask = task;
     self.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[task.progress doubleValue]];
     [self.btn addTarget:self action:@selector(btnHandler:) forControlEvents:UIControlEventTouchDown];
-    switch (self.downloadTask.taskState) {
+    switch (task.taskState) {
         case DownloadingState:
             [self.btn setTitle:@"暂停" forState:UIControlStateNormal];
             break;

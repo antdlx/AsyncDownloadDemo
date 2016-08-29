@@ -80,17 +80,14 @@
                 [_manager restartDownloadTask:thisTask complete:^(){
                     [strongCell.btn setTitle:@"暂停" forState:UIControlStateNormal];
                 }Fail:nil];
-                
                 break;
             }
             case WaitingState:
                 [strongCell.btn setTitle:@"等待中" forState:UIControlStateNormal];
                 break;
             default:
-                //TODO
                 break;
         }
-
     };
     
     return cell;

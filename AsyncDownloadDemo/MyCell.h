@@ -12,13 +12,16 @@
 
 @interface MyCell : UITableViewCell
 
-@property(nonatomic,copy) NSString * identify;
+//UI
 @property(nonatomic,strong) UIProgressView * progressView;
 @property(nonatomic,strong) UILabel * titleLabel;
 @property(nonatomic,strong) UILabel * percentLabel;
 @property(nonatomic,strong) UIButton * btn;
 @property(nonatomic,strong) UIButton * btnCancel;
-@property (nonatomic,strong) MyDownloadTask * downloadTask;
+//用于绑定cell和task的唯一标识，每个cell都不一样，采用cell0,cell1,cell2....的方案
+@property(nonatomic,copy) NSString * identify;
+//@property (nonatomic,strong) MyDownloadTask * downloadTask;
+//Cell上按钮的监听器
 @property (nonatomic,copy) void (^CancelHandlerBlock)();
 @property (nonatomic,copy) void (^StateHandlerBlock)();
 
