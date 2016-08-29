@@ -44,6 +44,12 @@
     
 }
 
+//第二次跳转回来的时候就不会再执行ViewDidLoad方法了，所以要在这里刷新一下列表
+-(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [_tableView reloadData];
+}
+
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
     static NSString * index = @"cell";

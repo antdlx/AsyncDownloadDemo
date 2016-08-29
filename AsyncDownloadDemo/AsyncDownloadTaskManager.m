@@ -132,6 +132,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
             }];
+            [self startNextWaitingTask];
         }
         if (block) {
             block();
