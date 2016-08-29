@@ -10,6 +10,7 @@
 #import "AsyncDownloadTaskManager.h"
 #import "MyDatas.h"
 #import "SecondViewController.h"
+#import "UIView+Toast.h"
 
 @interface ViewController ()
 
@@ -59,19 +60,20 @@
     
 }
 - (void)Handler1:(id)sender {
-
-        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
-                               @"title":@"download operation 1"};
-        MyDatas * data = [MyDatas CellWithDict:dic];
+    
+    NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
+                           @"title":@"download operation 1"};
+    MyDatas * data = [MyDatas CellWithDict:dic];
     for (MyDatas * d in _secVC.datas) {
         if ([d.url isEqualToString:data.url]) {
+            [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
             return;
         }
     }
-        [_secVC.datas addObject:data];
-
-        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video1.mp4"];
-
+    [_secVC.datas addObject:data];
+    
+    [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video1.mp4"];
+    [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
     
 }
 
@@ -82,12 +84,13 @@
     MyDatas * data = [MyDatas CellWithDict:dic];
     for (MyDatas * d in _secVC.datas) {
         if ([d.url isEqualToString:data.url]) {
+            [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
             return;
         }
     }
     [_secVC.datas addObject:data];
     [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video2.mp4"];
-    
+    [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
 }
 
 - (void)Handler3:(id)sender {
@@ -97,12 +100,13 @@
     MyDatas * data = [MyDatas CellWithDict:dic];
     for (MyDatas * d in _secVC.datas) {
         if ([d.url isEqualToString:data.url]) {
+            [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
             return;
         }
     }
     [_secVC.datas addObject:data];
     [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4"];
-  
+   [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
 }
 
 - (void)TransmitionHandlerToSec:(id)sender {

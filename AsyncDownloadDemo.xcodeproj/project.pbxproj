@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1AC58CC01D6F5D040033D66F /* MyDatas.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC58CBF1D6F5D040033D66F /* MyDatas.m */; };
 		1AC58CC31D6F6A270033D66F /* MyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC58CC21D6F6A270033D66F /* MyCell.m */; };
+		BF25F4BC1D74629A00806B25 /* UIView+Toast.m in Sources */ = {isa = PBXBuildFile; fileRef = BF25F4BB1D74629A00806B25 /* UIView+Toast.m */; };
 		BFDD2E6B1D6EDC6F00AD0AD6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDD2E6A1D6EDC6F00AD0AD6 /* main.m */; };
 		BFDD2E6E1D6EDC6F00AD0AD6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDD2E6D1D6EDC6F00AD0AD6 /* AppDelegate.m */; };
 		BFDD2E711D6EDC6F00AD0AD6 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDD2E701D6EDC6F00AD0AD6 /* ViewController.m */; };
@@ -43,6 +44,8 @@
 		1AC58CBF1D6F5D040033D66F /* MyDatas.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyDatas.m; sourceTree = "<group>"; };
 		1AC58CC11D6F6A270033D66F /* MyCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyCell.h; sourceTree = "<group>"; };
 		1AC58CC21D6F6A270033D66F /* MyCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyCell.m; sourceTree = "<group>"; };
+		BF25F4BA1D74629A00806B25 /* UIView+Toast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Toast.h"; sourceTree = "<group>"; };
+		BF25F4BB1D74629A00806B25 /* UIView+Toast.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Toast.m"; sourceTree = "<group>"; };
 		BFDD2E661D6EDC6F00AD0AD6 /* AsyncDownloadDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AsyncDownloadDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFDD2E6A1D6EDC6F00AD0AD6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		BFDD2E6C1D6EDC6F00AD0AD6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -114,6 +117,8 @@
 		BFDD2E681D6EDC6F00AD0AD6 /* AsyncDownloadDemo */ = {
 			isa = PBXGroup;
 			children = (
+				BF25F4BA1D74629A00806B25 /* UIView+Toast.h */,
+				BF25F4BB1D74629A00806B25 /* UIView+Toast.m */,
 				BFDD2EA21D6EE1D000AD0AD6 /* MyDownloadTask.h */,
 				BFDD2EA31D6EE1D000AD0AD6 /* MyDownloadTask.m */,
 				BFDD2E9F1D6EE14200AD0AD6 /* AsyncDownloadTaskManager.h */,
@@ -291,6 +296,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF25F4BC1D74629A00806B25 /* UIView+Toast.m in Sources */,
 				1AC58CC01D6F5D040033D66F /* MyDatas.m in Sources */,
 				1AC58CC31D6F6A270033D66F /* MyCell.m in Sources */,
 				BFDD2EA41D6EE1D000AD0AD6 /* MyDownloadTask.m in Sources */,

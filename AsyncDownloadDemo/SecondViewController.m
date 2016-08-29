@@ -64,11 +64,26 @@
     
     MyDownloadTask * thisTask = [_manager bindCell:cell WithTaskURL:thisData.url];
     [cell GenerateCellWithModel:thisData andTableView:tableView andTask:thisTask];
+    //删除的监听器
     cell.CancelHandlerBlock = ^(){
-        [_manager cancelDownloadTask:thisTask DeleteFile:YES complete:nil];
-        [_datas removeObject:thisData];
-        [_tableView reloadData];
+        //添加alert确认是否删除视频源文件
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"删除" message:@"请问是否删除视频源文件？" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *action = [UIAlertAction actionWithTitle:@"删除" style:UIAlertActionStyleDefault handler:^(UIAlertAction *alertaction){
+            [_manager cancelDownloadTask:thisTask DeleteFile:YES complete:nil];
+            [_datas removeObject:thisData];
+            [_tableView reloadData];
+        }];
+        UIAlertAction *action2 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault handler:^(UIAlertAction *alertaction){
+            [_manager cancelDownloadTask:thisTask DeleteFile:NO complete:nil];
+            [_datas removeObject:thisData];
+            [_tableView reloadData];
+        }];
+        [alert addAction:action];
+        [alert addAction:action2];
+        [self presentViewController:alert animated:YES completion:nil];
     };
+    
+    //状态变化的按钮的监听器，开始、暂停、等待中
     __weak typeof(cell) weakcell = cell;
     cell.StateHandlerBlock = ^(){
         __strong typeof(weakcell) strongCell = weakcell;

@@ -35,53 +35,5 @@
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AsyncDownloadDemo/SecondViewController.m"
-            timestampString = "494164347.516724"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "78"
-            endingLineNumber = "78"
-            landmarkName = "-tableView:cellForRowAtIndexPath:"
-            landmarkType = "5">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "__56-[SecondViewController tableView:cellForRowAtIndexPath:]_block_invoke.66"
-                  moduleName = "AsyncDownloadDemo"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/antdlxding/Documents/iOS/XCodeSpace/AsyncDownloadDemo/AsyncDownloadDemo/SecondViewController.m"
-                  timestampString = "494164398.386627"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "78"
-                  endingLineNumber = "78"
-                  offsetFromSymbolStart = "166">
-               </Location>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "__56-[SecondViewController tableView:cellForRowAtIndexPath:]_block_invoke_2"
-                  moduleName = "AsyncDownloadDemo"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/antdlxding/Documents/iOS/XCodeSpace/AsyncDownloadDemo/AsyncDownloadDemo/SecondViewController.m"
-                  timestampString = "494164398.386776"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "78"
-                  endingLineNumber = "78"
-                  offsetFromSymbolStart = "12">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
    </Breakpoints>
 </Bucket>
