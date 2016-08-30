@@ -63,8 +63,8 @@
     MyDatas* thisData = _datas[count];
     
     MyDownloadTask * thisTask = [_manager bindCell:cell WithTaskURL:thisData.url];
-    [cell GenerateCellWithModel:thisData andTableView:tableView andTask:thisTask];
-    //删除的监听器
+    [cell GenerateCellWithModel:thisData andTask:thisTask];
+    //删除的监听器 
     cell.CancelHandlerBlock = ^(){
         //添加alert确认是否删除视频源文件
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"删除" message:@"请问是否删除视频源文件？" preferredStyle:UIAlertControllerStyleAlert];

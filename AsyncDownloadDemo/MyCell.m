@@ -75,7 +75,7 @@
 }
 
 //UI渲染最好在Cell中实现
--(void)GenerateCellWithModel:(MyDatas *)data andTableView:(UITableView *)tableview andTask:(MyDownloadTask *)task{
+-(void)GenerateCellWithModel:(MyDatas *)data andTask:(MyDownloadTask *)task{
 
     self.titleLabel.text = data.title;
     self.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[task.progress doubleValue]];

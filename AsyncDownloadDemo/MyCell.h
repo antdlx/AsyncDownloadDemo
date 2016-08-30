@@ -26,6 +26,6 @@
 @property (nonatomic,copy) void (^StateHandlerBlock)();
 
 //渲染cell的UI
--(void)GenerateCellWithModel:(MyDatas *)data andTableView:(UITableView *)tableview andTask:(MyDownloadTask *)task;
+-(void)GenerateCellWithModel:(MyDatas *)data andTask:(MyDownloadTask *)task;
 
 @end
