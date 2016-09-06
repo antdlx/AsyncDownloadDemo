@@ -9,7 +9,7 @@
 #import "AsyncDownloadTaskManager.h"
 #import "MyDownloadTask.h"
 #import "MyCell.h"
-#import "Reachability.h"
+//#import "Reachability.h"
 
 static const NSInteger MAX_ASYNC_NUM = 2;
 static const BOOL ALLOW_CELLULAR_ACCESS = NO;
@@ -48,9 +48,9 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     _session = [NSURLSession sessionWithConfiguration:sessionConfig delegate:self delegateQueue:_asyncQueue];
     
     //监听网络变化
-    Reachability* hostReach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
-    [hostReach startNotifier];
+//    Reachability* hostReach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+//    [hostReach startNotifier];
     
     return self;
 }
@@ -379,29 +379,29 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 }
 
 //ReachAbility 监听网络状态的方法
--(void)reachabilityChanged:(NSNotification *) notification{
-    Reachability * reachability = [notification object];
-    NetworkStatus status  = [reachability currentReachabilityStatus];
-    
-    switch (status) {
-        case NotReachable:
-            //当前网络不可达
-            NSLog(@"无网络");
-            break;
-        case ReachableViaWiFi:
-            //wifi
-            NSLog(@"WiFi");
-            break;
-        case ReachableViaWWAN:
-            //WWAN 就是蜂窝网络
-            NSLog(@"蜂窝网络");
-            break;
-            
-        default:
-            
-            break;
-    }
-}
+//-(void)reachabilityChanged:(NSNotification *) notification{
+//    Reachability * reachability = [notification object];
+//    NetworkStatus status  = [reachability currentReachabilityStatus];
+//    
+//    switch (status) {
+//        case NotReachable:
+//            //当前网络不可达
+//            NSLog(@"无网络");
+//            break;
+//        case ReachableViaWiFi:
+//            //wifi
+//            NSLog(@"WiFi");
+//            break;
+//        case ReachableViaWWAN:
+//            //WWAN 就是蜂窝网络
+//            NSLog(@"蜂窝网络");
+//            break;
+//            
+//        default:
+//            
+//            break;
+//    }
+//}
 
 #pragma mark Delegate
 
@@ -437,6 +437,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     if (thisTask.cell) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
             [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
+            //手动置100%，因为最后将要结束的时候更新UI会有延迟，比如说停在99.54%
+            [thisTask.cell.progressView setProgress:1.0];
         }];
     }
 
