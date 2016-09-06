@@ -433,11 +433,13 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     [_downloadingTaskArray removeObject:thisTask];
     [_finishedTaskArray addObject:thisTask];
     thisTask.taskState = FinishedState;
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
-        [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
-    }];
-    //    NSString * caches = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-    //    NSString * filename = [caches stringByAppendingString:[NSString stringWithFormat:@"/%@",[downloadTask.originalRequest.URL lastPathComponent]]];
+    
+    if (thisTask.cell) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
+            [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
+        }];
+    }
+
     NSString * filename = [thisTask.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",thisTask.saveFileName]];
     NSLog(@"uri is %@",filename);
     [_fg moveItemAtPath:location.path toPath:filename error:nil];

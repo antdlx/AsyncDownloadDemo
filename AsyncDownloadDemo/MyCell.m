@@ -29,9 +29,9 @@
     _titleLabel.textColor = [UIColor blackColor];
     [self.contentView addSubview:_titleLabel];
     
-    _percentLabel = [[UILabel alloc] initWithFrame:CGRectMake(258,8, 64, 27)];
+    _percentLabel = [[UILabel alloc] initWithFrame:CGRectMake(253,8, 69, 27)];
     _percentLabel.text = @"-50 %";
-    _percentLabel.font = [UIFont systemFontOfSize:17];
+    _percentLabel.font = [UIFont systemFontOfSize:16];
     _percentLabel.textAlignment = NSTextAlignmentLeft;
     _percentLabel.backgroundColor  = [UIColor clearColor];
     _percentLabel.textColor = [UIColor grayColor];
@@ -92,7 +92,10 @@
             [self.btn setTitle:@"等待中" forState:UIControlStateNormal];
             break;
         default:
-            [self.btn setTitle:@"EBtn" forState:UIControlStateNormal];
+            //下载完成的状态
+            [self.btn setTitle:@"完成" forState:UIControlStateNormal];
+            [self.progressView setProgress:1.0];
+            [self.percentLabel setText:@"100.00%"];
             break;
     }
 }
