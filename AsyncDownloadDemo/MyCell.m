@@ -79,6 +79,7 @@
 
     self.titleLabel.text = data.title;
     self.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[task.progress doubleValue]];
+    [self.progressView setProgress:[task.progress floatValue]/100];
     [self.btn addTarget:self action:@selector(btnHandler:) forControlEvents:UIControlEventTouchDown];
     switch (task.taskState) {
         case DownloadingState:

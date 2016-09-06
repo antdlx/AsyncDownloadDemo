@@ -9,6 +9,7 @@
 #import "AsyncDownloadTaskManager.h"
 #import "MyDownloadTask.h"
 #import "MyCell.h"
+#import "Reachability.h"
 
 static const NSInteger MAX_ASYNC_NUM = 2;
 static const BOOL ALLOW_CELLULAR_ACCESS = NO;
@@ -37,13 +38,19 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     _downloadingTaskArray = [NSMutableArray array];
     _waitingTaskArray = [NSMutableArray array];
     _finishedTaskArray = [NSMutableArray array];
+    _datas = [NSMutableArray array];
     _resumeDataDictionary = [NSMutableDictionary dictionary];
-    _bindCellDictionary = [NSMutableDictionary dictionary];
+    _bindCellArray = [NSMutableArray array];
     _allowCellularAccess = ALLOW_CELLULAR_ACCESS;
     _fg = [NSFileManager defaultManager];
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
     sessionConfig.timeoutIntervalForRequest = 5.0f;
     _session = [NSURLSession sessionWithConfiguration:sessionConfig delegate:self delegateQueue:_asyncQueue];
+    
+    //监听网络变化
+    Reachability* hostReach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+    [hostReach startNotifier];
     
     return self;
 }
@@ -219,8 +226,10 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                 [_fg removeItemAtPath:[t.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",t.saveFileName]] error:nil];
             }
         }
-
+        
     }
+    //删除绑定列表中的cell和task对应关系
+    [_bindCellArray removeAllObjects];
 }
 
 -(void)cancelDownloadTaskWithURL:(NSString *)url DeleteFile:(BOOL)isDelete complete:(nullable cancelBlock)block{
@@ -232,7 +241,9 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case DownloadingState:
             [thisTask.downloadTask cancel];
             [_downloadingTaskArray removeObject:thisTask];
-             [self startNextWaitingTask];
+            //删除绑定列表中的cell和task对应关系
+            [_bindCellArray removeObject:url];
+            [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
                 [_fg removeItemAtPath:[thisTask.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",thisTask.saveFileName]] error:nil];
@@ -242,7 +253,9 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case WaitingState:
             [_waitingTaskArray removeObject:thisTask];
             [_resumeDataDictionary removeObjectForKey:thisTask.taskUrl];
-             [self startNextWaitingTask];
+            //删除绑定列表中的cell和task对应关系
+            [_bindCellArray removeObject:url];
+            [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
                 [_fg removeItemAtPath:[thisTask.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",thisTask.saveFileName]] error:nil];
@@ -263,7 +276,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     if (block) {
         block();
     }
-
+    
 }
 
 -(void)cancelDownloadTask:(MyDownloadTask *)task DeleteFile:(BOOL)isDelete complete:(cancelBlock)block{
@@ -272,6 +285,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case DownloadingState:
             [task.downloadTask cancel];
             [_downloadingTaskArray removeObject:task];
+            //删除绑定列表中的cell和task对应关系
+            [_bindCellArray removeObject:task.taskUrl];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
@@ -280,6 +295,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case WaitingState:
             [_waitingTaskArray removeObject:task];
             [_resumeDataDictionary removeObjectForKey:task.taskUrl];
+            //删除绑定列表中的cell和task对应关系
+            [_bindCellArray removeObject:task.taskUrl];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
@@ -321,16 +338,21 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 }
 
 -(MyDownloadTask *)bindCell:(MyCell *)cell WithTaskURL:(NSString *)url{
-    
-    if ([_bindCellDictionary[cell.identify] length] > 0) {
-        [self findTaskWithURL:_bindCellDictionary[cell.identify]].cell = nil;
+    NSInteger identify = cell.identify;
+    //若cell复用了，则清除之前与task绑定的cell
+    if ([_bindCellArray count] > identify) {
+        if ([_bindCellArray[identify] length] > 0) {
+            MyDownloadTask * thisTask = [self findTaskWithURL:_bindCellArray[identify]];
+            thisTask.cell = nil;
+        }
     }
-    [self findTaskWithURL:url].cell = cell;
-    [_bindCellDictionary setObject:url forKey:cell.identify];
+    MyDownloadTask * thisTaskx = [self findTaskWithURL:url];
+    thisTaskx.cell = cell;
+    [_bindCellArray addObject:url];
     return [self findTaskWithURL:url];
 }
 
-//开启等待队列中的正在等待的对象
+//开启等待队列中的正在等待的对象,自动启动waiting，不自动启动pausing
 -(void)startNextWaitingTask{
     //如果还有别的等待下载的任务，就开启它
     //建立一个临时数组用来遍历用，因为不能同时对一个数组遍历和修改
@@ -340,17 +362,45 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         if ((((t.taskState == WaitingState) && [_waitingTaskArray count] > 0) || ((t.taskState == PausingState) && [_waitingTaskArray count] > 1)) && [_downloadingTaskArray count] < MAX_ASYNC_NUM ) {
             if (t.taskState == WaitingState) {
                 [t.downloadTask resume];
-            }else{
-                t.downloadTask = [_session downloadTaskWithResumeData:_resumeDataDictionary[t.taskUrl]];
-                [t.downloadTask resume];
+                t.taskState = DownloadingState;
+                [_waitingTaskArray removeObject:t];
+                [_downloadingTaskArray addObject:t];
+                [t.cell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+                
             }
-            t.taskState = DownloadingState;
-            [_waitingTaskArray removeObject:t];
-            [_downloadingTaskArray addObject:t];
-            [t.cell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+            //  修改：不自动执行暂停的任务
+            //            else{
+            //                t.downloadTask = [_session downloadTaskWithResumeData:_resumeDataDictionary[t.taskUrl]];
+            //                [t.downloadTask resume];
+            //            }
         }
     }
     
+}
+
+//ReachAbility 监听网络状态的方法
+-(void)reachabilityChanged:(NSNotification *) notification{
+    Reachability * reachability = [notification object];
+    NetworkStatus status  = [reachability currentReachabilityStatus];
+    
+    switch (status) {
+        case NotReachable:
+            //当前网络不可达
+            NSLog(@"无网络");
+            break;
+        case ReachableViaWiFi:
+            //wifi
+            NSLog(@"WiFi");
+            break;
+        case ReachableViaWWAN:
+            //WWAN 就是蜂窝网络
+            NSLog(@"蜂窝网络");
+            break;
+            
+        default:
+            
+            break;
+    }
 }
 
 #pragma mark Delegate
@@ -367,7 +417,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
         }
         
-        //NSLog(@"percent is%@",[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
+        NSLog(@"cell is %ld ; percent is%@",thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
     }];
 }
 

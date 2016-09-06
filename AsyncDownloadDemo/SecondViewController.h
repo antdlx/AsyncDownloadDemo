@@ -10,6 +10,4 @@
 
 @interface SecondViewController : UIViewController
 
-@property (strong, nonatomic) NSMutableArray * datas;
-
 @end
