@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 @class MyDownloadTask;
 @class MyCell;
 
@@ -32,6 +33,7 @@
 @property(nonatomic,strong,nonnull) NSMutableArray * bindCellArray;
 //Mycell的数据集合
 @property (strong, nonatomic,nonnull) NSMutableArray * datas;
+
 
 //一些成功和失败的回调函数
 typedef void (^ restartBlock)();

@@ -11,12 +11,15 @@
 #import "MyCell.h"
 #import "AsyncDownloadTaskManager.h"
 #import "MyDownloadTask.h"
+#import "Reachability.h"
+#import "UIView+Toast.h"
 
 @interface SecondViewController() <UITableViewDelegate,UITableViewDataSource>
 
 @property(nonatomic,strong) AsyncDownloadTaskManager * manager;
 @property(nonatomic,strong) UITableView *tableView;
 @property(nonatomic,strong) UIButton * btn;
+@property(nonatomic,assign) NSInteger single;
 
 @end
 
@@ -38,7 +41,43 @@
     _tableView.dataSource = self;
     _manager = [AsyncDownloadTaskManager shared];
     
+    _single = 0;
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    // 通知中心注册通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+    //Reachability实例调用startNotifier方法启动网络状态监测
+    [reach startNotifier];
 }
+
+-(void)reachabilityChanged:(NSNotification *) notification{
+    //不知道为什么，刚进入会显示2次，之后会被调用4次，所以只显示一次
+    _single++;
+    if ((_single-2) % 4 == 1) {
+        Reachability *reach = [notification object];
+        
+        switch ([reach currentReachabilityStatus]) {
+            case NotReachable:
+                [self.view makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
+                [_manager pauseAllTaskAndFiles];
+                NSLog(@"NotReachable");
+                break;
+            case ReachableViaWiFi:
+                [self.view makeToast:@"ReachableViaWiFi" duration:1.0 position:CSToastPositionCenter];
+                NSLog(@"ReachableViaWiFi");
+                //need a restart all task func, and u need to finish this func in AsyncDownloadTaskManager class
+                break;
+            case ReachableViaWWAN:
+                [self.view makeToast:@"ReachableViaWWAN" duration:1.0 position:CSToastPositionCenter];
+                NSLog(@"ReachableViaWWAN");
+                [_manager pauseAllTaskAndFiles];
+                break;
+            default:
+                break;
+        }
+        
+    }
+}
+
 
 //第二次跳转回来的时候就不会再执行ViewDidLoad方法了，所以要在这里刷新一下列表
 -(void)viewWillAppear:(BOOL)animated{

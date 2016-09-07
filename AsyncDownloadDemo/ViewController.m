@@ -11,6 +11,7 @@
 #import "MyDatas.h"
 #import "SecondViewController.h"
 #import "UIView+Toast.h"
+#import "Reachability.h"
 
 @interface ViewController ()
 
@@ -19,11 +20,15 @@
 @property(nonatomic,strong) UIButton *btn1;
 @property(nonatomic,strong) UIButton *btn2;
 @property(nonatomic,strong) UIButton *btn3;
+@property(nonatomic,strong) UIButton *btn4;
 @property(nonatomic,strong) UIButton *btn;
+@property(nonatomic,assign) NSInteger single;
 
 @end
 
 @implementation ViewController
+
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -46,6 +51,12 @@
     [_btn3 setTitle:@"download 3" forState:UIControlStateNormal];
     [self.view addSubview:_btn3];
     
+    _btn4 = [[UIButton alloc]initWithFrame:CGRectMake(241, 174, 97, 90)];
+    [_btn4 addTarget:self action:@selector(Handler4:) forControlEvents:UIControlEventTouchDown];
+    [_btn4 setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+    [_btn4 setTitle:@"download 4" forState:UIControlStateNormal];
+    [self.view addSubview:_btn4];
+    
     _btn = [[UIButton alloc]initWithFrame:CGRectMake(0, 698, 414, 38)];
     [_btn addTarget:self action:@selector(TransmitionHandlerToSec:) forControlEvents:UIControlEventTouchDown];
     [_btn setTitle:@"GoToSec" forState:UIControlStateNormal];
@@ -57,55 +68,131 @@
     _secVC = [[SecondViewController alloc] init];
     _cachesPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
     
+    _single = 0;
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    // 通知中心注册通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+    //Reachability实例调用startNotifier方法启动网络状态监测
+    [reach startNotifier];
+    
 }
-- (void)Handler1:(id)sender {
-    
-    NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
-                           @"title":@"download operation 1"};
-    MyDatas * data = [MyDatas CellWithDict:dic];
-    for (MyDatas * d in _manager.datas) {
-        if ([d.url isEqualToString:data.url]) {
-            [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
-            return;
+
+-(void)reachabilityChanged:(NSNotification *) notification{
+    //不知道为什么，会被调用两次，所以只显示一次
+    _single++;
+    if (_single % 2 == 1) {
+        Reachability *reach = [notification object];
+        
+        switch ([reach currentReachabilityStatus]) {
+            case NotReachable:
+                [self.view makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
+                [_manager pauseAllTaskAndFiles];
+                NSLog(@"NotReachable");
+                break;
+            case ReachableViaWiFi:
+                [self.view makeToast:@"ReachableViaWiFi" duration:1.0 position:CSToastPositionCenter];
+                NSLog(@"ReachableViaWiFi");
+                //need a restart all task func, and u need to finish this func in AsyncDownloadTaskManager class
+                break;
+            case ReachableViaWWAN:
+                [self.view makeToast:@"ReachableViaWWAN" duration:1.0 position:CSToastPositionCenter];
+                NSLog(@"ReachableViaWWAN");
+                [_manager pauseAllTaskAndFiles];
+                break;
+            default:
+                break;
         }
+        
     }
-    [_manager.datas addObject:data];
-    
-    [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video1.mp4"];
-    [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+}
+
+
+- (void)Handler1:(id)sender {
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+        
+        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
+                               @"title":@"download operation 1"};
+        MyDatas * data = [MyDatas CellWithDict:dic];
+        for (MyDatas * d in _manager.datas) {
+            if ([d.url isEqualToString:data.url]) {
+                [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
+                return;
+            }
+        }
+        [_manager.datas addObject:data];
+        
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video1.mp4"];
+        [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    }else{
+        [self.view makeToast:@"无网络"];
+    }
     
 }
 
 - (void)Handler2:(id)sender {
     
-    NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo2.mp4",
-                           @"title":@"download operation 2"};
-    MyDatas * data = [MyDatas CellWithDict:dic];
-    for (MyDatas * d in _manager.datas) {
-        if ([d.url isEqualToString:data.url]) {
-            [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
-            return;
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo2.mp4",
+                               @"title":@"download operation 2"};
+        MyDatas * data = [MyDatas CellWithDict:dic];
+        for (MyDatas * d in _manager.datas) {
+            if ([d.url isEqualToString:data.url]) {
+                [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
+                return;
+            }
         }
+        [_manager.datas addObject:data];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video2.mp4"];
+        [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    }else{
+        [self.view makeToast:@"无网络"];
     }
-    [_manager.datas addObject:data];
-    [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video2.mp4"];
-    [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    
 }
 
 - (void)Handler3:(id)sender {
-    
-    NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo3.mp4",
-                           @"title":@"download operation 3"};
-    MyDatas * data = [MyDatas CellWithDict:dic];
-    for (MyDatas * d in _manager.datas) {
-        if ([d.url isEqualToString:data.url]) {
-            [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
-            return;
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+        
+        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo3.mp4",
+                               @"title":@"download operation 3"};
+        MyDatas * data = [MyDatas CellWithDict:dic];
+        for (MyDatas * d in _manager.datas) {
+            if ([d.url isEqualToString:data.url]) {
+                [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
+                return;
+            }
         }
+        [_manager.datas addObject:data];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4"];
+        [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    }else{
+        [self.view makeToast:@"无网络"];
     }
-    [_manager.datas addObject:data];
-    [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4"];
-   [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    
+}
+
+- (void)Handler4:(id)sender {
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+        
+        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
+                               @"title":@"download operation 4"};
+        MyDatas * data = [MyDatas CellWithDict:dic];
+        for (MyDatas * d in _manager.datas) {
+            if ([d.url isEqualToString:data.url]) {
+                [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
+                return;
+            }
+        }
+        [_manager.datas addObject:data];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4"];
+        [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    }else{
+        [self.view makeToast:@"无网络"];
+    }
 }
 
 - (void)TransmitionHandlerToSec:(id)sender {

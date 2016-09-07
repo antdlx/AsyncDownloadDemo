@@ -9,7 +9,6 @@
 #import "AsyncDownloadTaskManager.h"
 #import "MyDownloadTask.h"
 #import "MyCell.h"
-//#import "Reachability.h"
 
 static const NSInteger MAX_ASYNC_NUM = 2;
 static const BOOL ALLOW_CELLULAR_ACCESS = NO;
@@ -96,7 +95,9 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             __weak typeof(self) weakSelf = self;
             [t.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
-                [strongSelf.resumeDataDictionary setObject:resumeData forKey:t.taskUrl];
+                if(resumeData){
+                    [strongSelf.resumeDataDictionary setObject:resumeData forKey:t.taskUrl];
+                }
             }];
             
         }
@@ -115,7 +116,9 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             __weak typeof(self) weakSelf = self;
             [thisTask.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
-                [strongSelf.resumeDataDictionary setObject:resumeData forKey:thisTask.taskUrl];
+                if(resumeData){
+                    [strongSelf.resumeDataDictionary setObject:resumeData forKey:thisTask.taskUrl];
+                }
             }];
             [self startNextWaitingTask];
         }
@@ -137,7 +140,9 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             __weak typeof(self) weakSelf = self;
             [task.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
-                [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
+                if(resumeData){
+                    [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
+                }
             }];
             [self startNextWaitingTask];
         }
@@ -317,6 +322,33 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 
 #pragma mark toolFuncs
 
+//-(void)reachabilityChanged:(NSNotification *) notification{
+//    Reachability *reach = [notification object];
+//    
+//    switch ([reach currentReachabilityStatus]) {
+//        case NotReachable:
+//            if (_toastView) {
+//                [_toastView makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
+//            }
+//            NSLog(@"NotReachable");
+//            break;
+//        case ReachableViaWiFi:
+//            if (_toastView) {
+//                [_toastView makeToast:@"ReachableViaWiFi" duration:1.0 position:CSToastPositionCenter];
+//            }
+//             NSLog(@"ReachableViaWiFi");
+//            break;
+//        case ReachableViaWWAN:
+//            if (_toastView) {
+//                [_toastView makeToast:@"ReachableViaWWAN" duration:1.0 position:CSToastPositionCenter];
+//            }
+//             NSLog(@"ReachableViaWWAN");
+//            break;
+//        default:
+//            break;
+//    }
+//}
+
 -(MyDownloadTask *)findTaskWithURL:(NSString *)url{
     MyDownloadTask *thisTask = nil;
     
@@ -378,31 +410,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     
 }
 
-//ReachAbility 监听网络状态的方法
-//-(void)reachabilityChanged:(NSNotification *) notification{
-//    Reachability * reachability = [notification object];
-//    NetworkStatus status  = [reachability currentReachabilityStatus];
-//    
-//    switch (status) {
-//        case NotReachable:
-//            //当前网络不可达
-//            NSLog(@"无网络");
-//            break;
-//        case ReachableViaWiFi:
-//            //wifi
-//            NSLog(@"WiFi");
-//            break;
-//        case ReachableViaWWAN:
-//            //WWAN 就是蜂窝网络
-//            NSLog(@"蜂窝网络");
-//            break;
-//            
-//        default:
-//            
-//            break;
-//    }
-//}
-
 #pragma mark Delegate
 
 //每次写入沙盒完毕后会调用
@@ -411,15 +418,16 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
         //通过URL获取task绑定的cell，然后操作cell中的进度条等控件
         MyDownloadTask * thisTask = [self findTaskWithURL:[[downloadTask.originalRequest URL]absoluteString]];
-        if (thisTask.cell) {
+        if (thisTask.cell != nil) {
             thisTask.progress = [NSNumber numberWithDouble:(float)totalBytesWritten/totalBytesExpectedToWrite*100];
             thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[thisTask.progress doubleValue]];
             [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
+            NSLog(@"cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
         }
-        
-        NSLog(@"cell is %ld ; percent is%@",thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
+        //?100%?
+        NSLog(@"2cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
     }];
-}
+  }
 
 //恢复下载的时候调用
 -(void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes{
@@ -434,11 +442,12 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     [_finishedTaskArray addObject:thisTask];
     thisTask.taskState = FinishedState;
     
-    if (thisTask.cell) {
+    if (thisTask.cell != nil) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
             [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
             //手动置100%，因为最后将要结束的时候更新UI会有延迟，比如说停在99.54%
-            [thisTask.cell.progressView setProgress:1.0];
+            [thisTask.cell.progressView setProgress:1.0 animated:YES];
+            [thisTask.cell.percentLabel setText:@"100.00%"];
         }];
     }
 
