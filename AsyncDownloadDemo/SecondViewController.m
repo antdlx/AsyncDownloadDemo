@@ -40,6 +40,7 @@
     _tableView.delegate = self;
     _tableView.dataSource = self;
     _manager = [AsyncDownloadTaskManager shared];
+    [_manager bindAlertView:self.view];
     
     _single = 0;
     Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
@@ -58,7 +59,7 @@
         switch ([reach currentReachabilityStatus]) {
             case NotReachable:
                 [self.view makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
-                [_manager pauseAllTaskAndFiles];
+                [_manager pauseAllTaskAndFiles:nil];
                 NSLog(@"NotReachable");
                 break;
             case ReachableViaWiFi:
@@ -69,7 +70,7 @@
             case ReachableViaWWAN:
                 [self.view makeToast:@"ReachableViaWWAN" duration:1.0 position:CSToastPositionCenter];
                 NSLog(@"ReachableViaWWAN");
-                [_manager pauseAllTaskAndFiles];
+                [_manager pauseAllTaskAndFiles:nil];
                 break;
             default:
                 break;
@@ -128,7 +129,9 @@
             case DownloadingState:{
                 //点击时正在下载，说明执行暂停逻辑
                 [_manager pauseDownloadTask:thisTask complete:^(){
-                    [strongCell.btn setTitle:@"开始" forState:UIControlStateNormal];
+                    [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
+                        [strongCell.btn setTitle:@"开始" forState:UIControlStateNormal];
+                    }];
                 }];
                 break;
             }
@@ -136,7 +139,9 @@
             {
                 //执行下载逻辑
                 [_manager restartDownloadTask:thisTask complete:^(){
-                    [strongCell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+                    [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
+                        [strongCell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+                    }];
                 }Fail:nil];
                 break;
             }

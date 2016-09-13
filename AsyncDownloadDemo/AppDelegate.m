@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "ViewController.h"
+#import "AsyncDownloadTaskManager.h"
 
 @interface AppDelegate ()
 
@@ -36,11 +37,32 @@
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-}
+
+    NSLog(@"did enter background");
+    AsyncDownloadTaskManager * manager = [AsyncDownloadTaskManager shared];
+    NSInteger allTaskCount = [manager.downloadingTaskArray count];
+    [manager pauseAllTaskAndFiles:^(){
+        
+        if ([NSThread isMainThread]) {
+            [manager.conditionLock lockWhenCondition:allTaskCount];
+            //获取Document完整路径
+            NSString *documentsDirectory = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
+            NSString *plist_path = [documentsDirectory stringByAppendingPathComponent:@"resumeData.plist"];
+            //先删除历史plist，防止以前的plist作出干扰
+            NSFileManager * fileManager = [NSFileManager defaultManager];
+            BOOL isDelete = [fileManager removeItemAtPath:plist_path error:nil];
+            //写入文件
+            [manager.resumeDataDictionary writeToFile:plist_path atomically:YES];
+            NSLog(@"check,%d %@",isDelete,manager.resumeDataDictionary);
+            [manager.conditionLock unlock];
+        }
+    }];
+
+ }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-}
+    }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
@@ -48,6 +70,8 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    
+    
 }
 
 @end

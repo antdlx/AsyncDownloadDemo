@@ -9,6 +9,7 @@
 #import "AsyncDownloadTaskManager.h"
 #import "MyDownloadTask.h"
 #import "MyCell.h"
+#import "UIView+Toast.h"
 
 static const NSInteger MAX_ASYNC_NUM = 2;
 static const BOOL ALLOW_CELLULAR_ACCESS = NO;
@@ -16,6 +17,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 @interface AsyncDownloadTaskManager()
 
 @property (nonatomic,strong) NSFileManager *fg;
+//互斥条件
+@property(assign,atomic)NSInteger condition;
 
 @end
 
@@ -38,13 +41,24 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     _waitingTaskArray = [NSMutableArray array];
     _finishedTaskArray = [NSMutableArray array];
     _datas = [NSMutableArray array];
-    _resumeDataDictionary = [NSMutableDictionary dictionary];
+    
+    NSString * plistPath = [[NSBundle mainBundle] pathForResource:@"resumeData" ofType:@"plist"];
+    NSMutableDictionary *resumeDataDictionaryx = [[NSMutableDictionary alloc] initWithContentsOfFile:plistPath];
+    if (resumeDataDictionaryx) {
+        _resumeDataDictionary = resumeDataDictionaryx;
+    }else{
+        _resumeDataDictionary = [NSMutableDictionary dictionary];
+    }
+    NSLog(@"init dic %@",resumeDataDictionaryx);
+    
     _bindCellArray = [NSMutableArray array];
     _allowCellularAccess = ALLOW_CELLULAR_ACCESS;
     _fg = [NSFileManager defaultManager];
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
     sessionConfig.timeoutIntervalForRequest = 5.0f;
     _session = [NSURLSession sessionWithConfiguration:sessionConfig delegate:self delegateQueue:_asyncQueue];
+    _conditionLock = [[NSConditionLock alloc]init];
+    _condition = 0;
     
     //监听网络变化
 //    Reachability* hostReach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
@@ -84,39 +98,46 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 
 #pragma mark pauseFuncs
 
--(void)pauseAllTaskAndFiles{
+-(void)pauseAllTaskAndFiles:(pauseBlock) block{
     
-    for (MyDownloadTask *t in _downloadingTaskArray) {
-        
-        if (t.taskState == DownloadingState) {
-            t.taskState = WaitingState;
-            [_downloadingTaskArray removeObject:t];
-            [_waitingTaskArray addObject:t];
+    //条件锁同步线程，确保外部调用者获得的是全部子task都暂停之后的结果
+    [_conditionLock lock];
+    NSLog(@"downloading array %@",_downloadingTaskArray);
+    [_downloadingTaskArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        MyDownloadTask * task = obj;
+        if (task.taskState == DownloadingState) {
+            //下面是调用了子线程的方法
             __weak typeof(self) weakSelf = self;
-            [t.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+            [task.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 if(resumeData){
-                    [strongSelf.resumeDataDictionary setObject:resumeData forKey:t.taskUrl];
+                    task.taskState = PausingState;
+                    [_downloadingTaskArray removeObject:task];
+                    [_waitingTaskArray addObject:task];
+                    
+                    [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
+                    _condition = _condition + 1;
                 }
             }];
-            
         }
+    }];
+    [_conditionLock unlockWithCondition:_condition];
+    if (block) {
+        block();
     }
 }
-
-
 
 -(void)pauseDownloadTaskWithURL:(NSString *)url complete:(nullable pauseBlock)block{
     MyDownloadTask * thisTask = [self findTaskWithURL:url];
     if (thisTask) {
         if (thisTask.taskState == DownloadingState) {
-            thisTask.taskState = PausingState;
-            [_downloadingTaskArray removeObject:thisTask];
-            [_waitingTaskArray addObject:thisTask];
-            __weak typeof(self) weakSelf = self;
+                __weak typeof(self) weakSelf = self;
             [thisTask.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 if(resumeData){
+                    thisTask.taskState = PausingState;
+                    [_downloadingTaskArray removeObject:thisTask];
+                    [_waitingTaskArray addObject:thisTask];
                     [strongSelf.resumeDataDictionary setObject:resumeData forKey:thisTask.taskUrl];
                 }
             }];
@@ -134,13 +155,14 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     
     if (task) {
         if (task.taskState == DownloadingState) {
-            task.taskState = PausingState;
-            [_downloadingTaskArray removeObject:task];
-            [_waitingTaskArray addObject:task];
-            __weak typeof(self) weakSelf = self;
+                __weak typeof(self) weakSelf = self;
             [task.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 if(resumeData){
+                    task.taskState = PausingState;
+                    [_downloadingTaskArray removeObject:task];
+                    [_waitingTaskArray addObject:task];
+
                     [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
                 }
             }];
@@ -349,6 +371,10 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 //    }
 //}
 
+-(void)bindAlertView:(UIView *)view{
+    _alertView = view;
+}
+
 -(MyDownloadTask *)findTaskWithURL:(NSString *)url{
     MyDownloadTask *thisTask = nil;
     
@@ -433,6 +459,21 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 -(void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes{
     
     NSLog(@"RESUME");
+}
+
+//这里是NSURLSession的代理方法，用于监听是否在下载过程中产生了错误，取决于error
+-(void)URLSession:(NSURLSession *)session task:(nonnull NSURLSessionTask *)task didCompleteWithError:(nullable NSError *)error{
+    
+    if (error) {
+        NSLog(@"seesion delegate : finish with error %@",error);
+        if (_alertView) {
+            [_alertView makeToast:@"网络或资源错误，请重新下载" duration:1.0 position:CSToastPositionCenter];
+        }
+        [self pauseAllTaskAndFiles:nil];
+    }else{
+        NSLog(@"seesion delegate : finish success");
+    }
+    
 }
 
 //下载完毕的时候会调用
