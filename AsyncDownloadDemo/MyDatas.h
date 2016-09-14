@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface MyDatas : NSObject
+@interface MyDatas : NSObject<NSCoding>
 
 @property (nonatomic,strong) NSString * url;
 @property (nonatomic,strong) NSString * title;

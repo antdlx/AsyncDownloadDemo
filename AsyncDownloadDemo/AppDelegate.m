@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 #import "AsyncDownloadTaskManager.h"
+#import "Configs.h"
 
 @interface AppDelegate ()
 
@@ -25,6 +26,12 @@
     self.window.rootViewController = rootView;
     [self.window setBackgroundColor:[UIColor whiteColor]];
     [self.window makeKeyAndVisible];
+    
+    //获取Document完整路径
+    NSString *documentsDirectory = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
+    NSString *datas_path = [documentsDirectory stringByAppendingPathComponent:BACKUP_DATAS_FILE];
+    BACKUP_DATAS_PATH = datas_path;
+    NSLog(@"%@",BACKUP_DATAS_PATH);
     
     return YES;
 }
@@ -45,15 +52,21 @@
         
         if ([NSThread isMainThread]) {
             [manager.conditionLock lockWhenCondition:allTaskCount];
-            //获取Document完整路径
-            NSString *documentsDirectory = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
-            NSString *plist_path = [documentsDirectory stringByAppendingPathComponent:@"resumeData.plist"];
+            
             //先删除历史plist，防止以前的plist作出干扰
             NSFileManager * fileManager = [NSFileManager defaultManager];
-            BOOL isDelete = [fileManager removeItemAtPath:plist_path error:nil];
-            //写入文件
-            [manager.resumeDataDictionary writeToFile:plist_path atomically:YES];
-            NSLog(@"check,%d %@",isDelete,manager.resumeDataDictionary);
+            [fileManager removeItemAtPath:BACKUP_DATAS_PATH error:nil];
+       
+            NSMutableData * backupData = [NSMutableData data];
+            NSKeyedArchiver * arch = [[NSKeyedArchiver alloc] initForWritingWithMutableData:backupData];
+            [arch encodeObject:manager.resumeDataDictionary forKey:BACKUP_RESUME];
+            [arch encodeObject:manager.waitingTaskArray forKey:BACKUP_WAITING];
+            [arch encodeObject:manager.finishedTaskArray forKey:BACKUP_FINISHED];
+            [arch encodeObject:manager.datas forKey:BACKUP_DATAS];
+            [arch finishEncoding];
+            
+            [backupData writeToFile:BACKUP_DATAS_PATH atomically:YES];
+            
             [manager.conditionLock unlock];
         }
     }];

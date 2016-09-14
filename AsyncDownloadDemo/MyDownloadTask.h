@@ -9,17 +9,17 @@
 #import <Foundation/Foundation.h>
 @class MyCell;
 
-@interface MyDownloadTask : NSObject
+@interface MyDownloadTask : NSObject<NSCoding>
 
 typedef enum TASK_STATE{
     //正在下载
-    DownloadingState = 1 << 0,
+    DownloadingState = 1,
     //正在等待
-    WaitingState = 1 << 1,
+    WaitingState = 2,
     //暂停中
-    PausingState = 1 << 2,
+    PausingState = 3,
     //已完成
-    FinishedState = 1 << 3
+    FinishedState = 4
 } TaskState;
 
 //当前task的状态

@@ -10,6 +10,7 @@
 #import "MyDownloadTask.h"
 #import "MyCell.h"
 #import "UIView+Toast.h"
+#import "Configs.h"
 
 static const NSInteger MAX_ASYNC_NUM = 2;
 static const BOOL ALLOW_CELLULAR_ACCESS = NO;
@@ -38,18 +39,31 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     
     _asyncQueue = [NSOperationQueue new];
     _downloadingTaskArray = [NSMutableArray array];
-    _waitingTaskArray = [NSMutableArray array];
-    _finishedTaskArray = [NSMutableArray array];
-    _datas = [NSMutableArray array];
     
-    NSString * plistPath = [[NSBundle mainBundle] pathForResource:@"resumeData" ofType:@"plist"];
-    NSMutableDictionary *resumeDataDictionaryx = [[NSMutableDictionary alloc] initWithContentsOfFile:plistPath];
-    if (resumeDataDictionaryx) {
-        _resumeDataDictionary = resumeDataDictionaryx;
-    }else{
-        _resumeDataDictionary = [NSMutableDictionary dictionary];
+    //恢复数据
+    NSData *tmpData = [NSData dataWithContentsOfFile:BACKUP_DATAS_PATH];
+    NSKeyedUnarchiver *unarch = [[NSKeyedUnarchiver alloc]initForReadingWithData:tmpData];
+    _datas = [unarch decodeObjectForKey:BACKUP_DATAS];
+    _resumeDataDictionary = [unarch decodeObjectForKey:BACKUP_RESUME];
+    _waitingTaskArray = [unarch decodeObjectForKey:BACKUP_WAITING];
+    _finishedTaskArray = [unarch decodeObjectForKey:BACKUP_FINISHED];
+    if (!_datas) {
+        _datas = [NSMutableArray array];
     }
-    NSLog(@"init dic %@",resumeDataDictionaryx);
+    if (!_waitingTaskArray) {
+        _waitingTaskArray = [NSMutableArray array];
+    }
+    if (!_finishedTaskArray) {
+        _finishedTaskArray = [NSMutableArray array];
+    }
+    if (!_resumeDataDictionary) {
+         _resumeDataDictionary = [NSMutableDictionary dictionary];
+    }
+    NSLog(@"===datas is %@",_datas);
+    NSLog(@"===resume is %@",_resumeDataDictionary);
+    NSLog(@"===waiting is %@",_waitingTaskArray);
+    NSLog(@"===finished is %@",_finishedTaskArray);
+    [unarch finishDecoding];
     
     _bindCellArray = [NSMutableArray array];
     _allowCellularAccess = ALLOW_CELLULAR_ACCESS;
