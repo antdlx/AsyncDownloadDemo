@@ -10,7 +10,7 @@
 		1AC58CC01D6F5D040033D66F /* MyDatas.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC58CBF1D6F5D040033D66F /* MyDatas.m */; };
 		1AC58CC31D6F6A270033D66F /* MyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC58CC21D6F6A270033D66F /* MyCell.m */; };
 		BF25F4BC1D74629A00806B25 /* UIView+Toast.m in Sources */ = {isa = PBXBuildFile; fileRef = BF25F4BB1D74629A00806B25 /* UIView+Toast.m */; };
-		BF61B1C61D7528BC008F056B /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = BF61B1C51D7528BC008F056B /* Reachability.m */; };
+		BF323A4D1D88FD9900891D53 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = BF323A4C1D88FD9900891D53 /* Reachability.m */; };
 		BFDD2E6B1D6EDC6F00AD0AD6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDD2E6A1D6EDC6F00AD0AD6 /* main.m */; };
 		BFDD2E6E1D6EDC6F00AD0AD6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDD2E6D1D6EDC6F00AD0AD6 /* AppDelegate.m */; };
 		BFDD2E711D6EDC6F00AD0AD6 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDD2E701D6EDC6F00AD0AD6 /* ViewController.m */; };
@@ -47,8 +47,8 @@
 		1AC58CC21D6F6A270033D66F /* MyCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyCell.m; sourceTree = "<group>"; };
 		BF25F4BA1D74629A00806B25 /* UIView+Toast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Toast.h"; sourceTree = "<group>"; };
 		BF25F4BB1D74629A00806B25 /* UIView+Toast.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Toast.m"; sourceTree = "<group>"; };
-		BF61B1C41D7528BC008F056B /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Reachability.h; path = ../Reachability.h; sourceTree = "<group>"; };
-		BF61B1C51D7528BC008F056B /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Reachability.m; path = ../Reachability.m; sourceTree = "<group>"; };
+		BF323A4B1D88FD9900891D53 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		BF323A4C1D88FD9900891D53 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		BFDD2E661D6EDC6F00AD0AD6 /* AsyncDownloadDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AsyncDownloadDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFDD2E6A1D6EDC6F00AD0AD6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		BFDD2E6C1D6EDC6F00AD0AD6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -120,8 +120,8 @@
 		BFDD2E681D6EDC6F00AD0AD6 /* AsyncDownloadDemo */ = {
 			isa = PBXGroup;
 			children = (
-				BF61B1C41D7528BC008F056B /* Reachability.h */,
-				BF61B1C51D7528BC008F056B /* Reachability.m */,
+				BF323A4B1D88FD9900891D53 /* Reachability.h */,
+				BF323A4C1D88FD9900891D53 /* Reachability.m */,
 				BF25F4BA1D74629A00806B25 /* UIView+Toast.h */,
 				BF25F4BB1D74629A00806B25 /* UIView+Toast.m */,
 				BFDD2EA21D6EE1D000AD0AD6 /* MyDownloadTask.h */,
@@ -304,8 +304,8 @@
 				BF25F4BC1D74629A00806B25 /* UIView+Toast.m in Sources */,
 				1AC58CC01D6F5D040033D66F /* MyDatas.m in Sources */,
 				1AC58CC31D6F6A270033D66F /* MyCell.m in Sources */,
+				BF323A4D1D88FD9900891D53 /* Reachability.m in Sources */,
 				BFDD2EA41D6EE1D000AD0AD6 /* MyDownloadTask.m in Sources */,
-				BF61B1C61D7528BC008F056B /* Reachability.m in Sources */,
 				BFDD2E9E1D6EDD6F00AD0AD6 /* SecondViewController.m in Sources */,
 				BFDD2E711D6EDC6F00AD0AD6 /* ViewController.m in Sources */,
 				BFDD2EA11D6EE14200AD0AD6 /* AsyncDownloadTaskManager.m in Sources */,
