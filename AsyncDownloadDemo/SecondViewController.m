@@ -102,23 +102,27 @@
     [cell GenerateCellWithModel:thisData andTask:thisTask];
     //删除的监听器 
     cell.CancelHandlerBlock = ^(){
-        //添加alert确认是否删除视频源文件
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"删除" message:@"请问是否删除视频源文件？" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *action = [UIAlertAction actionWithTitle:@"删除" style:UIAlertActionStyleDefault handler:^(UIAlertAction *alertaction){
-            [_manager cancelDownloadTask:thisTask DeleteFile:YES complete:nil];
-            [_manager.datas removeObject:thisData];
-            [_tableView reloadData];
-            
-        }];
-        UIAlertAction *action2 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault handler:^(UIAlertAction *alertaction){
-            [_manager cancelDownloadTask:thisTask DeleteFile:NO complete:nil];
-            [_manager.datas removeObject:thisData];
-            [_tableView reloadData];
-           
-        }];
-        [alert addAction:action];
-        [alert addAction:action2];
-        [self presentViewController:alert animated:YES completion:nil];
+       
+            //添加alert确认是否删除视频源文件
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"删除" message:@"请问是否删除视频源文件？" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"删除" style:UIAlertActionStyleDefault handler:^(UIAlertAction *alertaction){
+                
+                [_manager cancelDownloadTask:thisTask DeleteFile:YES complete:nil];
+                [_manager.datas removeObject:thisData];
+                [_tableView reloadData];
+               
+            }];
+            UIAlertAction *action2 = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault handler:^(UIAlertAction *alertaction){
+                
+                [_manager cancelDownloadTask:thisTask DeleteFile:NO complete:nil];
+                [_manager.datas removeObject:thisData];
+                [_tableView reloadData];
+                
+            }];
+            [alert addAction:action];
+            [alert addAction:action2];
+            [self presentViewController:alert animated:YES completion:nil];
+       
     };
     
     //状态变化的按钮的监听器，开始、暂停、等待中
@@ -146,13 +150,18 @@
                 break;
             }
             case WaitingState:
-                [strongCell.btn setTitle:@"等待中" forState:UIControlStateNormal];
-                break;
+            {
+                [_manager downloadwithTask:thisTask complete:^(){
+                    [[NSOperationQueue mainQueue]addOperationWithBlock:^(){
+                         [strongCell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+                    }];
+                }];
+                 break;
+            }
             default:
                 break;
         }
     };
-    
     return cell;
 }
 
@@ -167,6 +176,11 @@
 }
 - (void)TransmitionHandler:(id)sender {
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+-(void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    [_manager unbindAlertView];
 }
 
 @end

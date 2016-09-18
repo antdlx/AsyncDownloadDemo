@@ -92,7 +92,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 }
 
 
--(void)download:(NSString *)url savePath:(NSString *)savepath saveName:(NSString *)saveName{
+-(void)download:(NSString *)url savePath:(NSString *)savepath saveName:(NSString *)saveName complete:(nullable startBlock)block{
     MyDownloadTask * task = [[MyDownloadTask alloc]init];
     task.downloadTask = [_session downloadTaskWithURL:[NSURL URLWithString:url]];
     task.saveFileName = saveName;
@@ -107,22 +107,42 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         task.taskState = WaitingState;
         [_waitingTaskArray addObject:task];
     }
-    
+    if (block) {
+        block();
+    }
+}
+
+-(void)downloadwithTask:(MyDownloadTask * )task complete:(nullable startBlock)block{
+     task.downloadTask = [_session downloadTaskWithURL:[NSURL URLWithString:task.taskUrl]];
+    if ([_downloadingTaskArray count] < MAX_ASYNC_NUM) {
+        [task.downloadTask resume];
+        task.taskState = DownloadingState;
+        [_downloadingTaskArray addObject:task];
+    }else{
+        task.taskState = WaitingState;
+        [_waitingTaskArray addObject:task];
+        [_alertView makeToast:TOAST_DOWNLOADING_ARRAY_FULL duration:1.0 position:CSToastPositionCenter];
+    }
+    if (block) {
+        block();
+    }
 }
 
 #pragma mark pauseFuncs
 
 -(void)pauseAllTaskAndFiles:(pauseBlock) block{
     
-    //条件锁同步线程，确保外部调用者获得的是全部子task都暂停之后的结果
-    [_conditionLock lock];
-    NSLog(@"downloading array %@",_downloadingTaskArray);
+    //条件锁同步线程，确保外部调用者获得的是全部子task都暂停之后的结果???lock的位置???
+//   [_conditionLock lock];
     [_downloadingTaskArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
         MyDownloadTask * task = obj;
         if (task.taskState == DownloadingState) {
+
             //下面是调用了子线程的方法
             __weak typeof(self) weakSelf = self;
             [task.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+                 [_conditionLock lock];
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 if(resumeData){
                     task.taskState = PausingState;
@@ -132,10 +152,11 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                     [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
                     _condition = _condition + 1;
                 }
+                [_conditionLock unlockWithCondition:_condition];
             }];
         }
     }];
-    [_conditionLock unlockWithCondition:_condition];
+//    [_conditionLock unlockWithCondition:_condition];
     if (block) {
         block();
     }
@@ -178,12 +199,13 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                     [_waitingTaskArray addObject:task];
 
                     [strongSelf.resumeDataDictionary setObject:resumeData forKey:task.taskUrl];
+                    if (block) {
+                        block();
+                    }
+                    [self startNextWaitingTask];
                 }
             }];
-            [self startNextWaitingTask];
-        }
-        if (block) {
-            block();
+            
         }
     }
 }
@@ -218,6 +240,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         if (block) {
             block();
         }
+    }else{
+          [_alertView makeToast:TOAST_DOWNLOADING_ARRAY_FULL duration:1.0 position:CSToastPositionCenter];
     }
     //pop alert to notice
     if(blockFail){
@@ -385,8 +409,41 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 //    }
 //}
 
+-(void)saveBeforeExit{
+    NSInteger allTaskCount = [_downloadingTaskArray count];
+    [self pauseAllTaskAndFiles:^(){
+        
+        if ([NSThread isMainThread]) {
+            [_conditionLock lockWhenCondition:allTaskCount];
+            
+            //先删除历史plist，防止以前的plist作出干扰
+            NSFileManager * fileManager = [NSFileManager defaultManager];
+            [fileManager removeItemAtPath:BACKUP_DATAS_PATH error:nil];
+            
+            NSMutableData * backupData = [NSMutableData data];
+            NSKeyedArchiver * arch = [[NSKeyedArchiver alloc] initForWritingWithMutableData:backupData];
+            [arch encodeObject:_resumeDataDictionary forKey:BACKUP_RESUME];
+            [arch encodeObject:_waitingTaskArray forKey:BACKUP_WAITING];
+            [arch encodeObject:_finishedTaskArray forKey:BACKUP_FINISHED];
+            [arch encodeObject:_datas forKey:BACKUP_DATAS];
+            [arch finishEncoding];
+            
+            [backupData writeToFile:BACKUP_DATAS_PATH atomically:YES];
+            
+            [_conditionLock unlock];
+        }
+    }];
+
+}
+
 -(void)bindAlertView:(UIView *)view{
     _alertView = view;
+}
+
+-(void)unbindAlertView{
+    if (_alertView) {
+        _alertView = NULL;
+    }
 }
 
 -(MyDownloadTask *)findTaskWithURL:(NSString *)url{
@@ -431,15 +488,19 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     NSArray * tempArray = [NSArray arrayWithArray:_waitingTaskArray];
     for(MyDownloadTask * t in tempArray){
         //等待队列处于等待状态数量的大于0 || 等待队列处于暂停状态的数量大于1（防止刚暂停的又开启了）&& 小于最大并行数
-        if ((((t.taskState == WaitingState) && [_waitingTaskArray count] > 0) || ((t.taskState == PausingState) && [_waitingTaskArray count] > 1)) && [_downloadingTaskArray count] < MAX_ASYNC_NUM ) {
-            if (t.taskState == WaitingState) {
+//        if ((((t.taskState == WaitingState) && [_waitingTaskArray count] > 0) || ((t.taskState == PausingState) && [_waitingTaskArray count] > 1)) && [_downloadingTaskArray count] < MAX_ASYNC_NUM ) {
+        if (t.taskState == WaitingState && [_downloadingTaskArray count] < MAX_ASYNC_NUM) {
+//            if (t.taskState == WaitingState) {
                 [t.downloadTask resume];
                 t.taskState = DownloadingState;
                 [_waitingTaskArray removeObject:t];
                 [_downloadingTaskArray addObject:t];
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
                 [t.cell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+            }];
+            
                 
-            }
+//            }
             //  修改：不自动执行暂停的任务
             //            else{
             //                t.downloadTask = [_session downloadTaskWithResumeData:_resumeDataDictionary[t.taskUrl]];
@@ -462,6 +523,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             thisTask.progress = [NSNumber numberWithDouble:(float)totalBytesWritten/totalBytesExpectedToWrite*100];
             thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[thisTask.progress doubleValue]];
             [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
+            //? can not to 100%
             NSLog(@"cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
         }
         //?100%?
@@ -480,10 +542,13 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     
     if (error) {
         NSLog(@"seesion delegate : finish with error %@",error);
-        if (_alertView) {
-            [_alertView makeToast:@"网络或资源错误，请重新下载" duration:1.0 position:CSToastPositionCenter];
+        //-999错误代码是我们自己Cancel掉的，不能算是网络或者资源错误
+        if (_alertView && error.code != -999) {
+            [[NSOperationQueue mainQueue]addOperationWithBlock:^(){
+                 [_alertView makeToast:@"网络或资源错误，请重新下载" duration:1.0 position:CSToastPositionCenter];
+            }];
         }
-        [self pauseAllTaskAndFiles:nil];
+//        [self pauseAllTaskAndFiles:nil];
     }else{
         NSLog(@"seesion delegate : finish success");
     }

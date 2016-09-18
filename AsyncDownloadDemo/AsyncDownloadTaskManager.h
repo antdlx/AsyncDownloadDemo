@@ -42,6 +42,7 @@
 
 //一些成功和失败的回调函数
 typedef void (^ restartBlock)();
+typedef void (^ startBlock)();
 typedef void (^ pauseBlock)();
 typedef void (^ cancelBlock)();
 typedef void (^ restartFailBlock)();
@@ -49,9 +50,13 @@ typedef void (^ restartFailBlock)();
 +(nonnull instancetype)shared;
 
 //添加下载任务
--(void)download:(nonnull NSString *)url savePath:(nonnull NSString *)savepath saveName:(nonnull NSString *)saveName;
+-(void)download:(nonnull NSString *)url savePath:(nonnull NSString *)savepath saveName:(nonnull NSString *)saveName complete:(nullable startBlock)block;
+//用于“等待中”状态的启动
+-(void)downloadwithTask:(nonnull MyDownloadTask *)task complete:(nullable startBlock)block;
 //绑定alertView
 -(void)bindAlertView:(nonnull UIView * )view;
+//及时释放对alertView的持有，因为manager是一个全局单例，容易造成内存泄漏
+-(void)unbindAlertView;
 //删除所有下载任务
 -(void)cancelAllTaskAndFiles:(BOOL)isDelet;
 //根据URL删除特定下载任务，是否删除文件，完成的回调block
@@ -72,5 +77,7 @@ typedef void (^ restartFailBlock)();
 -(nonnull MyDownloadTask *)findTaskWithURL:(nonnull NSString *)url;
 //将task与自定义cell进行绑定，用来更新UI等操作
 -(nonnull MyDownloadTask *)bindCell:(nonnull MyCell *)cell WithTaskURL:(nonnull NSString *)url;
+//程序退出前所做的必要的保存状态
+-(void)saveBeforeExit;
 
 @end

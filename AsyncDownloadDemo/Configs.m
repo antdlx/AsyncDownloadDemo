@@ -17,6 +17,7 @@ NSString * const BACKUP_FINISHED = @"finishedTaskArray";
 NSString * const BACKUP_DATAS = @"datas";
 NSString * const BACKUP_URL = @"url";
 NSString * const BACKUP_TITLE = @"title";
+NSString * const TOAST_DOWNLOADING_ARRAY_FULL = @"下载队列已满，请等待其他下载完成";
 
 @implementation Configs
 

@@ -122,7 +122,7 @@
         }
         [_manager.datas addObject:data];
         
-        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video1.mp4"];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video1.mp4" complete:nil];
         [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
     }else{
         [self.view makeToast:@"无网络"];
@@ -144,7 +144,7 @@
             }
         }
         [_manager.datas addObject:data];
-        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video2.mp4"];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video2.mp4" complete:nil];
         [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
     }else{
         [self.view makeToast:@"无网络"];
@@ -166,7 +166,7 @@
             }
         }
         [_manager.datas addObject:data];
-        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4"];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4" complete:nil];
         [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
     }else{
         [self.view makeToast:@"无网络"];
@@ -176,43 +176,25 @@
 
 - (void)Handler4:(id)sender {
     NSLog(@"button 4");
-     AsyncDownloadTaskManager * manager = [AsyncDownloadTaskManager shared];
-    NSInteger allTaskCount = [manager.downloadingTaskArray count];
-    [manager pauseAllTaskAndFiles:^(){
+   
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
         
-        if ([NSThread isMainThread]) {
-            [manager.conditionLock lockWhenCondition:allTaskCount];
-            //获取Document完整路径
-            NSString *documentsDirectory = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
-            NSString *plist_path = [documentsDirectory stringByAppendingPathComponent:@"resumeData.plist"];
-            //先删除历史plist，防止以前的plist作出干扰
-            NSFileManager * fileManager = [NSFileManager defaultManager];
-            BOOL isDelete = [fileManager removeItemAtPath:plist_path error:nil];
-            //写入文件
-            [manager.resumeDataDictionary writeToFile:plist_path atomically:YES];
-            NSLog(@"check,%d %@",isDelete,manager.resumeDataDictionary);
-            [manager.conditionLock unlock];
+        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo4.mp4",
+                               @"title":@"download operation 4"};
+        MyDatas * data = [MyDatas CellWithDict:dic];
+        for (MyDatas * d in _manager.datas) {
+            if ([d.url isEqualToString:data.url]) {
+                [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
+                return;
+            }
         }
-    }];
-
-//    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-//    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
-//        
-//        NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
-//                               @"title":@"download operation 4"};
-//        MyDatas * data = [MyDatas CellWithDict:dic];
-//        for (MyDatas * d in _manager.datas) {
-//            if ([d.url isEqualToString:data.url]) {
-//                [self.view makeToast:@"已加入下载队列" duration:2.0 position:CSToastPositionCenter];
-//                return;
-//            }
-//        }
-//        [_manager.datas addObject:data];
-//        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video3.mp4"];
-//        [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
-//    }else{
-//        [self.view makeToast:@"无网络"];
-//    }
+        [_manager.datas addObject:data];
+        [_manager download:dic[@"url"] savePath:_cachesPath saveName:@"video4.mp4" complete:nil];
+        [self.view makeToast:@"加入下载队列" duration:2.0 position:CSToastPositionCenter];
+    }else{
+        [self.view makeToast:@"无网络"];
+    }
 }
 
 - (void)TransmitionHandlerToSec:(id)sender {

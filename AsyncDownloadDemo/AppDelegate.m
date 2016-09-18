@@ -21,17 +21,19 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
+    //获取Document完整路径
+    NSString *documentsDirectory = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
+    NSString *datas_path = [documentsDirectory stringByAppendingPathComponent:BACKUP_DATAS_FILE];
+    BACKUP_DATAS_PATH = datas_path;
+    NSLog(@"%@",BACKUP_DATAS_PATH);
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     ViewController *rootView = [[ViewController alloc] init];
     self.window.rootViewController = rootView;
     [self.window setBackgroundColor:[UIColor whiteColor]];
     [self.window makeKeyAndVisible];
     
-    //获取Document完整路径
-    NSString *documentsDirectory = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
-    NSString *datas_path = [documentsDirectory stringByAppendingPathComponent:BACKUP_DATAS_FILE];
-    BACKUP_DATAS_PATH = datas_path;
-    NSLog(@"%@",BACKUP_DATAS_PATH);
+    
     
     return YES;
 }
@@ -47,29 +49,30 @@
 
     NSLog(@"did enter background");
     AsyncDownloadTaskManager * manager = [AsyncDownloadTaskManager shared];
-    NSInteger allTaskCount = [manager.downloadingTaskArray count];
-    [manager pauseAllTaskAndFiles:^(){
-        
-        if ([NSThread isMainThread]) {
-            [manager.conditionLock lockWhenCondition:allTaskCount];
-            
-            //先删除历史plist，防止以前的plist作出干扰
-            NSFileManager * fileManager = [NSFileManager defaultManager];
-            [fileManager removeItemAtPath:BACKUP_DATAS_PATH error:nil];
-       
-            NSMutableData * backupData = [NSMutableData data];
-            NSKeyedArchiver * arch = [[NSKeyedArchiver alloc] initForWritingWithMutableData:backupData];
-            [arch encodeObject:manager.resumeDataDictionary forKey:BACKUP_RESUME];
-            [arch encodeObject:manager.waitingTaskArray forKey:BACKUP_WAITING];
-            [arch encodeObject:manager.finishedTaskArray forKey:BACKUP_FINISHED];
-            [arch encodeObject:manager.datas forKey:BACKUP_DATAS];
-            [arch finishEncoding];
-            
-            [backupData writeToFile:BACKUP_DATAS_PATH atomically:YES];
-            
-            [manager.conditionLock unlock];
-        }
-    }];
+    [manager saveBeforeExit];
+//    NSInteger allTaskCount = [manager.downloadingTaskArray count];
+//    [manager pauseAllTaskAndFiles:^(){
+//        
+//        if ([NSThread isMainThread]) {
+//            [manager.conditionLock lockWhenCondition:allTaskCount];
+//            
+//            //先删除历史plist，防止以前的plist作出干扰
+//            NSFileManager * fileManager = [NSFileManager defaultManager];
+//            [fileManager removeItemAtPath:BACKUP_DATAS_PATH error:nil];
+//       
+//            NSMutableData * backupData = [NSMutableData data];
+//            NSKeyedArchiver * arch = [[NSKeyedArchiver alloc] initForWritingWithMutableData:backupData];
+//            [arch encodeObject:manager.resumeDataDictionary forKey:BACKUP_RESUME];
+//            [arch encodeObject:manager.waitingTaskArray forKey:BACKUP_WAITING];
+//            [arch encodeObject:manager.finishedTaskArray forKey:BACKUP_FINISHED];
+//            [arch encodeObject:manager.datas forKey:BACKUP_DATAS];
+//            [arch finishEncoding];
+//            
+//            [backupData writeToFile:BACKUP_DATAS_PATH atomically:YES];
+//            
+//            [manager.conditionLock unlock];
+//        }
+//    }];
 
  }
 
