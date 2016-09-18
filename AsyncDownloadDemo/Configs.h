@@ -19,6 +19,6 @@ extern NSString * const BACKUP_DATAS;
 extern NSString * const BACKUP_URL;
 extern NSString * const BACKUP_TITLE;
 extern NSString * const TOAST_DOWNLOADING_ARRAY_FULL;
-
+extern NSInteger const MAX_ASYNC_NUM;
 
 @end

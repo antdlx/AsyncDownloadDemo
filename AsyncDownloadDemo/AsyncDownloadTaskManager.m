@@ -12,7 +12,6 @@
 #import "UIView+Toast.h"
 #import "Configs.h"
 
-static const NSInteger MAX_ASYNC_NUM = 2;
 static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 
 @interface AsyncDownloadTaskManager()
