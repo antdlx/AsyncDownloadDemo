@@ -30,7 +30,7 @@
 //是否允许蜂窝网络
 @property(nonatomic,assign) BOOL allowCellularAccess;
 //用来记录有哪些Cell与Task已经绑定，用于防止cell错位的情况
-@property(nonatomic,strong,nonnull) NSMutableArray * bindCellArray;
+//@property(nonatomic,strong,nonnull) NSMutableArray * bindCellArray;
 //Mycell的数据集合
 @property (strong, nonatomic,nonnull) NSMutableArray * datas;
 //显示toast或者警告的UiView
@@ -77,6 +77,8 @@ typedef void (^ restartFailBlock)();
 -(nonnull MyDownloadTask *)findTaskWithURL:(nonnull NSString *)url;
 //将task与自定义cell进行绑定，用来更新UI等操作
 -(nonnull MyDownloadTask *)bindCell:(nonnull MyCell *)cell WithTaskURL:(nonnull NSString *)url;
+//解除task对cell的持有，防止内存泄漏
+-(void)unbindCells;
 //程序退出前所做的必要的保存状态
 -(void)saveBeforeExit;
 

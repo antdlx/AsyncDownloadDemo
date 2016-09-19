@@ -64,7 +64,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     NSLog(@"===finished is %@",_finishedTaskArray);
     [unarch finishDecoding];
     
-    _bindCellArray = [NSMutableArray array];
+//    _bindCellArray = [NSMutableArray array];
     _allowCellularAccess = ALLOW_CELLULAR_ACCESS;
     _fg = [NSFileManager defaultManager];
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -293,7 +293,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         
     }
     //删除绑定列表中的cell和task对应关系
-    [_bindCellArray removeAllObjects];
+//    [_bindCellArray removeAllObjects];
 }
 
 -(void)cancelDownloadTaskWithURL:(NSString *)url DeleteFile:(BOOL)isDelete complete:(nullable cancelBlock)block{
@@ -306,7 +306,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             [thisTask.downloadTask cancel];
             [_downloadingTaskArray removeObject:thisTask];
             //删除绑定列表中的cell和task对应关系
-            [_bindCellArray removeObject:url];
+//            [_bindCellArray removeObject:url];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
@@ -318,7 +318,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             [_waitingTaskArray removeObject:thisTask];
             [_resumeDataDictionary removeObjectForKey:thisTask.taskUrl];
             //删除绑定列表中的cell和task对应关系
-            [_bindCellArray removeObject:url];
+//            [_bindCellArray removeObject:url];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
@@ -350,7 +350,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             [task.downloadTask cancel];
             [_downloadingTaskArray removeObject:task];
             //删除绑定列表中的cell和task对应关系
-            [_bindCellArray removeObject:task.taskUrl];
+//            [_bindCellArray removeObject:task.taskUrl];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
@@ -360,7 +360,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             [_waitingTaskArray removeObject:task];
             [_resumeDataDictionary removeObjectForKey:task.taskUrl];
             //删除绑定列表中的cell和task对应关系
-            [_bindCellArray removeObject:task.taskUrl];
+//            [_bindCellArray removeObject:task.taskUrl];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
@@ -466,18 +466,30 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 }
 
 -(MyDownloadTask *)bindCell:(MyCell *)cell WithTaskURL:(NSString *)url{
-    NSInteger identify = cell.identify;
+//    NSInteger identify = cell.identify;
     //若cell复用了，则清除之前与task绑定的cell
-    if ([_bindCellArray count] > identify) {
-        if ([_bindCellArray[identify] length] > 0) {
-            MyDownloadTask * thisTask = [self findTaskWithURL:_bindCellArray[identify]];
-            thisTask.cell = nil;
-        }
-    }
+//    if ([_bindCellArray count] > identify) {
+//        if ([_bindCellArray[identify] length] > 0) {
+//            MyDownloadTask * thisTask = [self findTaskWithURL:_bindCellArray[identify]];
+//            thisTask.cell = nil;
+//        }
+//    }
     MyDownloadTask * thisTaskx = [self findTaskWithURL:url];
     thisTaskx.cell = cell;
-    [_bindCellArray addObject:url];
+//    [_bindCellArray addObject:url];
     return [self findTaskWithURL:url];
+}
+
+-(void)unbindCells{
+    for (MyDownloadTask * t in _downloadingTaskArray) {
+        t.cell = nil;
+    }
+    for (MyDownloadTask * t in _finishedTaskArray) {
+        t.cell = nil;
+    }
+    for (MyDownloadTask * t in _waitingTaskArray) {
+        t.cell = nil;
+    }
 }
 
 //开启等待队列中的正在等待的对象,自动启动waiting，不自动启动pausing

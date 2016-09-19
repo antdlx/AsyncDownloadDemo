@@ -33,8 +33,6 @@
     [self.window setBackgroundColor:[UIColor whiteColor]];
     [self.window makeKeyAndVisible];
     
-    
-    
     return YES;
 }
 

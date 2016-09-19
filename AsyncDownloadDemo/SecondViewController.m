@@ -181,6 +181,9 @@
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     [_manager unbindAlertView];
+    [_manager unbindCells];
 }
 
 @end
+
+

@@ -25,7 +25,7 @@ typedef enum TASK_STATE{
 //当前task的状态
 @property(nonatomic,assign) TaskState  taskState;
 //下载文件存储路径
-@property(nonatomic,copy) NSString * saveFilePath;
+@property(nonatomic,copy) NSString  * saveFilePath;
 //下载文件存储名称
 @property(nonatomic,copy) NSString * saveFileName;
 //下载文件的URL
