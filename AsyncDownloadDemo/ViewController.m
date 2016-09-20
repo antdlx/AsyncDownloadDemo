@@ -23,6 +23,7 @@
 @property(nonatomic,strong) UIButton *btn4;
 @property(nonatomic,strong) UIButton *btn;
 @property(nonatomic,assign) NSInteger single;
+@property(nonatomic,strong)Reachability *reach;
 
 @end
 
@@ -69,21 +70,22 @@
     _cachesPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
     
     _single = 0;
-    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    _reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
     // 通知中心注册通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
     //Reachability实例调用startNotifier方法启动网络状态监测
-    [reach startNotifier];
+    [_reach startNotifier];
     
 }
 
 -(void)reachabilityChanged:(NSNotification *) notification{
     //不知道为什么，会被调用两次，所以只显示一次
-    _single++;
-    if (_single % 2 == 1) {
-        Reachability *reach = [notification object];
-        
-        switch ([reach currentReachabilityStatus]) {
+//    _single++;
+//    if (_single % 2 == 1) {
+//        Reachability *reach = [notification object];
+//        _reach = [notification object];
+    
+        switch ([_reach currentReachabilityStatus]) {
             case NotReachable:
                 [self.view makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
                 [_manager pauseAllTaskAndFiles:nil];
@@ -103,13 +105,13 @@
                 break;
         }
         
-    }
+//    }
 }
 
 
 - (void)Handler1:(id)sender {
-    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+//    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([_reach currentReachabilityStatus]==ReachableViaWiFi) {
         
         NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo1.mp4",
                                @"title":@"download operation 1"};
@@ -132,8 +134,8 @@
 
 - (void)Handler2:(id)sender {
     
-    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+//    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([_reach currentReachabilityStatus]==ReachableViaWiFi) {
         NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo2.mp4",
                                @"title":@"download operation 2"};
         MyDatas * data = [MyDatas CellWithDict:dic];
@@ -153,8 +155,8 @@
 }
 
 - (void)Handler3:(id)sender {
-    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+//    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([_reach currentReachabilityStatus]==ReachableViaWiFi) {
         
         NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo3.mp4",
                                @"title":@"download operation 3"};
@@ -177,8 +179,8 @@
 - (void)Handler4:(id)sender {
     NSLog(@"button 4");
    
-    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-    if ([reach currentReachabilityStatus]==ReachableViaWiFi) {
+//    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    if ([_reach currentReachabilityStatus]==ReachableViaWiFi) {
         
         NSDictionary * dic = @{@"url":@"http://www.antdlx.com/testVideo4.mp4",
                                @"title":@"download operation 4"};
@@ -199,10 +201,12 @@
 
 - (void)TransmitionHandlerToSec:(id)sender {
     [self presentViewController:_secVC animated:YES completion:nil];
-    
 }
 
-
+-(void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    [_reach stopNotifier];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

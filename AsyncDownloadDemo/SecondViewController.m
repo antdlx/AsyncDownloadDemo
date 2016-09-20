@@ -20,6 +20,7 @@
 @property(nonatomic,strong) UITableView *tableView;
 @property(nonatomic,strong) UIButton * btn;
 @property(nonatomic,assign) NSInteger single;
+@property(nonatomic,strong)Reachability *reach;
 
 @end
 
@@ -43,20 +44,20 @@
     [_manager bindAlertView:self.view];
     
     _single = 0;
-    Reachability *reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
+    _reach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
     // 通知中心注册通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
     //Reachability实例调用startNotifier方法启动网络状态监测
-    [reach startNotifier];
+    [_reach startNotifier];
 }
 
 -(void)reachabilityChanged:(NSNotification *) notification{
     //不知道为什么，刚进入会显示2次，之后会被调用4次，所以只显示一次
-    _single++;
-    if ((_single-2) % 4 == 1) {
-        Reachability *reach = [notification object];
-        
-        switch ([reach currentReachabilityStatus]) {
+//    _single++;
+//    if ((_single-2) % 4 == 1) {
+//        _reach = [notification object];
+    
+        switch ([_reach currentReachabilityStatus]) {
             case NotReachable:
                 [self.view makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
                 [_manager pauseAllTaskAndFiles:nil];
@@ -76,7 +77,7 @@
                 break;
         }
         
-    }
+//    }
 }
 
 
@@ -191,6 +192,7 @@
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     [_manager unbindAlertView];
+    [_reach stopNotifier];
 }
 
 @end
