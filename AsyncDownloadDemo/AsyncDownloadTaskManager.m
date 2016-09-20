@@ -464,7 +464,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     return thisTask;
 }
 
--(MyDownloadTask *)bindCell:(MyCell *)cell WithTaskURL:(NSString *)url{
+//-(MyDownloadTask *)bindCell:(MyCell *)cell WithTaskURL:(NSString *)url{
 //    NSInteger identify = cell.identify;
     //若cell复用了，则清除之前与task绑定的cell
 //    if ([_bindCellArray count] > identify) {
@@ -473,23 +473,23 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 //            thisTask.cell = nil;
 //        }
 //    }
-    MyDownloadTask * thisTaskx = [self findTaskWithURL:url];
-    thisTaskx.cell = cell;
+//    MyDownloadTask * thisTaskx = [self findTaskWithURL:url];
+//    thisTaskx.cell = cell;
 //    [_bindCellArray addObject:url];
-    return [self findTaskWithURL:url];
-}
+//    return [self findTaskWithURL:url];
+//}
 
--(void)unbindCells{
-    for (MyDownloadTask * t in _downloadingTaskArray) {
-        t.cell = nil;
-    }
-    for (MyDownloadTask * t in _finishedTaskArray) {
-        t.cell = nil;
-    }
-    for (MyDownloadTask * t in _waitingTaskArray) {
-        t.cell = nil;
-    }
-}
+//-(void)unbindCells{
+//    for (MyDownloadTask * t in _downloadingTaskArray) {
+//        t.cell = nil;
+//    }
+//    for (MyDownloadTask * t in _finishedTaskArray) {
+//        t.cell = nil;
+//    }
+//    for (MyDownloadTask * t in _waitingTaskArray) {
+//        t.cell = nil;
+//    }
+//}
 
 //开启等待队列中的正在等待的对象,自动启动waiting，不自动启动pausing
 -(void)startNextWaitingTask{
@@ -506,7 +506,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                 [_waitingTaskArray removeObject:t];
                 [_downloadingTaskArray addObject:t];
             [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
-                [t.cell.btn setTitle:@"暂停" forState:UIControlStateNormal];
+                t.updateBtnBlock(@"暂停");
             }];
             
                 
@@ -529,15 +529,16 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
         //通过URL获取task绑定的cell，然后操作cell中的进度条等控件
         MyDownloadTask * thisTask = [self findTaskWithURL:[[downloadTask.originalRequest URL]absoluteString]];
-        if (thisTask.cell != nil) {
+        if (thisTask.updateProgressBlock != nil) {
             thisTask.progress = [NSNumber numberWithDouble:(float)totalBytesWritten/totalBytesExpectedToWrite*100];
-            thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[thisTask.progress doubleValue]];
-            [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
+            thisTask.updateProgressBlock(thisTask.progress);
+//            thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[thisTask.progress doubleValue]];
+//            [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
             //? can not to 100%
-            NSLog(@"cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
+            NSLog(@"percent is%@",[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
         }
         //?100%?
-        NSLog(@"2-cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
+        NSLog(@"2 percent is%@",[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
     }];
   }
 
@@ -572,12 +573,14 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     [_finishedTaskArray addObject:thisTask];
     thisTask.taskState = FinishedState;
     
-    if (thisTask.cell != nil) {
+    if (thisTask.updateProgressBlock != nil  && thisTask.updateBtnBlock!=nil) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
-            [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
+            thisTask.updateBtnBlock(@"完成");
+//            [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
             //手动置100%，因为最后将要结束的时候更新UI会有延迟，比如说停在99.54%
-            [thisTask.cell.progressView setProgress:1.0 animated:YES];
-            [thisTask.cell.percentLabel setText:@"100.00%"];
+            thisTask.updateProgressBlock([NSNumber numberWithInt:100]);
+//            [thisTask.cell.progressView setProgress:1.0 animated:YES];
+//            [thisTask.cell.percentLabel setText:@"100.00%"];
         }];
     }
 

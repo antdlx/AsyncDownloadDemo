@@ -98,8 +98,18 @@
     NSInteger count = indexPath.row;
     MyDatas* thisData = _manager.datas[count];
     
-    MyDownloadTask * thisTask = [_manager bindCell:cell WithTaskURL:thisData.url];
+//    MyDownloadTask * thisTask = [_manager bindCell:cell WithTaskURL:thisData.url];
+    MyDownloadTask * thisTask = [_manager findTaskWithURL:thisData.url];
     [cell GenerateCellWithModel:thisData andTask:thisTask];
+    //更新cell的btn的block
+    thisTask.updateBtnBlock = ^(NSString * str){
+        [cell.btn setTitle:str forState:UIControlStateNormal];
+    };
+    //更新cell的进度的block
+    thisTask.updateProgressBlock = ^(NSNumber * progress){
+        [cell.percentLabel setText:[NSString stringWithFormat:@"%.2f%%",[progress doubleValue]]];
+        [cell.progressView setProgress:[progress doubleValue]/100 animated:YES];
+    };
     //删除的监听器 
     cell.CancelHandlerBlock = ^(){
        
@@ -181,7 +191,7 @@
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     [_manager unbindAlertView];
-    [_manager unbindCells];
+//    [_manager unbindCells];
 }
 
 @end

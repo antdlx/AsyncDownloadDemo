@@ -10,6 +10,7 @@
 
 @implementation MyDownloadTask
 
+//对象归档
 -(void)encodeWithCoder:(NSCoder *)aCoder{
     [aCoder encodeInteger:_taskState forKey:@"taskState"];
     [aCoder encodeObject:_saveFileName forKey:@"saveFileName"];
