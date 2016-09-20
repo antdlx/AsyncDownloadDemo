@@ -92,7 +92,7 @@
     MyCell * cell = [tableView dequeueReusableCellWithIdentifier:index];
     if (cell == nil) {
         cell = [[MyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:index];
-        cell.identify = indexPath.row;
+//        cell.identify = indexPath.row;
     }
     
     NSInteger count = indexPath.row;

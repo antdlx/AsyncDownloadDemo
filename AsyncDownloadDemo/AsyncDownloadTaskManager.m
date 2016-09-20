@@ -131,8 +131,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 
 -(void)pauseAllTaskAndFiles:(pauseBlock) block{
     
-    //条件锁同步线程，确保外部调用者获得的是全部子task都暂停之后的结果???lock的位置???
-//   [_conditionLock lock];
+   
     [_downloadingTaskArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         
         MyDownloadTask * task = obj;
@@ -141,6 +140,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             //下面是调用了子线程的方法
             __weak typeof(self) weakSelf = self;
             [task.downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+                 //条件锁同步线程，确保外部调用者获得的是全部子task都暂停之后的结果
                  [_conditionLock lock];
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 if(resumeData){
@@ -155,7 +155,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             }];
         }
     }];
-//    [_conditionLock unlockWithCondition:_condition];
+
     if (block) {
         block();
     }
@@ -538,7 +538,7 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             NSLog(@"cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
         }
         //?100%?
-        NSLog(@"2cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
+        NSLog(@"2-cell is %ld ; percent is%@",(long)thisTask.cell.identify,[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
     }];
   }
 
