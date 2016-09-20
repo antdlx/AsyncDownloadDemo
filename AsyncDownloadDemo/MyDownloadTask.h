@@ -33,7 +33,11 @@ typedef enum TASK_STATE{
 //下载文件任务的task
 @property(nonatomic,strong) NSURLSessionDownloadTask * downloadTask;
 //下载task对应的cell，用来更新UI用
+<<<<<<< HEAD
 @property(nonatomic,strong) MyCell * cell;
+=======
+//@property(nonatomic,strong) MyCell * cell;
+>>>>>>> parent of 5e538c8... v1.1 task不再持有cell，改为通过block更新UI
 //下载task对应的下载进度，用来更新UI用
 @property(nonatomic) NSNumber* progress;
 

@@ -74,9 +74,15 @@ typedef void (^ restartFailBlock)();
 //在下载队列和等待队列中根据URL寻找task
 -(nonnull MyDownloadTask *)findTaskWithURL:(nonnull NSString *)url;
 //将task与自定义cell进行绑定，用来更新UI等操作
+<<<<<<< HEAD
 -(nonnull MyDownloadTask *)bindCell:(nonnull MyCell *)cell WithTaskURL:(nonnull NSString *)url;
 //解除task对cell的持有，防止内存泄漏
 -(void)unbindCells;
+=======
+//-(nonnull MyDownloadTask *)bindCell:(nonnull MyCell *)cell WithTaskURL:(nonnull NSString *)url;
+//解除task对cell的持有，防止内存泄漏
+//-(void)unbindCells;
+>>>>>>> parent of 5e538c8... v1.1 task不再持有cell，改为通过block更新UI
 //程序退出前所做的必要的保存状态
 -(void)saveBeforeExit;
 

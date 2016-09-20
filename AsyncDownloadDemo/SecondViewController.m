@@ -181,7 +181,11 @@
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     [_manager unbindAlertView];
+<<<<<<< HEAD
     [_manager unbindCells];
+=======
+//    [_manager unbindCells];
+>>>>>>> parent of 5e538c8... v1.1 task不再持有cell，改为通过block更新UI
 }
 
 @end
