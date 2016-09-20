@@ -173,13 +173,16 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                     [_downloadingTaskArray removeObject:thisTask];
                     [_waitingTaskArray addObject:thisTask];
                     [strongSelf.resumeDataDictionary setObject:resumeData forKey:thisTask.taskUrl];
+                    
+                    if (block) {
+                        block();
+                    }
                 }
+                
             }];
             [self startNextWaitingTask];
         }
-        if (block) {
-            block();
-        }
+       
         
     }
 }
@@ -222,10 +225,11 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         if (block) {
             block();
         }
-    }
-    //pop alert to notice
-    if(blockFail){
-        blockFail();
+    }else{
+        //pop alert to notice
+        if(blockFail){
+            blockFail();
+        }
     }
 }
 
@@ -241,12 +245,11 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         }
     }else{
           [_alertView makeToast:TOAST_DOWNLOADING_ARRAY_FULL duration:1.0 position:CSToastPositionCenter];
+        //pop alert to notice
+        if(blockFail){
+            blockFail();
+        }
     }
-    //pop alert to notice
-    if(blockFail){
-        blockFail();
-    }
-    
 }
 
 #pragma mark cancelFuncs

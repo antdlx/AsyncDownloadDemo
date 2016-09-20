@@ -29,8 +29,6 @@
 @property(atomic,strong,nonnull) NSMutableDictionary *resumeDataDictionary;
 //是否允许蜂窝网络
 @property(nonatomic,assign) BOOL allowCellularAccess;
-//用来记录有哪些Cell与Task已经绑定，用于防止cell错位的情况
-//@property(nonatomic,strong,nonnull) NSMutableArray * bindCellArray;
 //Mycell的数据集合
 @property (strong, nonatomic,nonnull) NSMutableArray * datas;
 //显示toast或者警告的UiView
