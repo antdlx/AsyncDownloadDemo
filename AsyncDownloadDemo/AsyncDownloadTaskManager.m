@@ -64,7 +64,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     NSLog(@"===finished is %@",_finishedTaskArray);
     [unarch finishDecoding];
     
-//    _bindCellArray = [NSMutableArray array];
     _allowCellularAccess = ALLOW_CELLULAR_ACCESS;
     _fg = [NSFileManager defaultManager];
     NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -72,11 +71,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     _session = [NSURLSession sessionWithConfiguration:sessionConfig delegate:self delegateQueue:_asyncQueue];
     _conditionLock = [[NSConditionLock alloc]init];
     _condition = 0;
-    
-    //监听网络变化
-//    Reachability* hostReach = [Reachability reachabilityWithHostName:@"www.antdlx.com"];
-//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
-//    [hostReach startNotifier];
     
     return self;
 }
@@ -291,8 +285,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         }
         
     }
-    //删除绑定列表中的cell和task对应关系
-//    [_bindCellArray removeAllObjects];
 }
 
 -(void)cancelDownloadTaskWithURL:(NSString *)url DeleteFile:(BOOL)isDelete complete:(nullable cancelBlock)block{
@@ -304,8 +296,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case DownloadingState:
             [thisTask.downloadTask cancel];
             [_downloadingTaskArray removeObject:thisTask];
-            //删除绑定列表中的cell和task对应关系
-//            [_bindCellArray removeObject:url];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
@@ -316,8 +306,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case WaitingState:
             [_waitingTaskArray removeObject:thisTask];
             [_resumeDataDictionary removeObjectForKey:thisTask.taskUrl];
-            //删除绑定列表中的cell和task对应关系
-//            [_bindCellArray removeObject:url];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 
@@ -348,8 +336,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case DownloadingState:
             [task.downloadTask cancel];
             [_downloadingTaskArray removeObject:task];
-            //删除绑定列表中的cell和task对应关系
-//            [_bindCellArray removeObject:task.taskUrl];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
@@ -358,8 +344,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         case WaitingState:
             [_waitingTaskArray removeObject:task];
             [_resumeDataDictionary removeObjectForKey:task.taskUrl];
-            //删除绑定列表中的cell和task对应关系
-//            [_bindCellArray removeObject:task.taskUrl];
             [self startNextWaitingTask];
             if (isDelete && isExist) {
                 [_fg removeItemAtPath:[task.saveFilePath stringByAppendingString:[NSString stringWithFormat:@"/%@",task.saveFileName]] error:nil];
@@ -379,34 +363,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
 }
 
 #pragma mark toolFuncs
-
-//-(void)reachabilityChanged:(NSNotification *) notification{
-//    Reachability *reach = [notification object];
-//    
-//    switch ([reach currentReachabilityStatus]) {
-//        case NotReachable:
-//            if (_toastView) {
-//                [_toastView makeToast:@"NotReachable" duration:1.0 position:CSToastPositionCenter];
-//            }
-//            NSLog(@"NotReachable");
-//            break;
-//        case ReachableViaWiFi:
-//            if (_toastView) {
-//                [_toastView makeToast:@"ReachableViaWiFi" duration:1.0 position:CSToastPositionCenter];
-//            }
-//             NSLog(@"ReachableViaWiFi");
-//            break;
-//        case ReachableViaWWAN:
-//            if (_toastView) {
-//                [_toastView makeToast:@"ReachableViaWWAN" duration:1.0 position:CSToastPositionCenter];
-//            }
-//             NSLog(@"ReachableViaWWAN");
-//            break;
-//        default:
-//            break;
-//    }
-//}
-
 -(void)saveBeforeExit{
     NSInteger allTaskCount = [_downloadingTaskArray count];
     [self pauseAllTaskAndFiles:^(){
@@ -464,43 +420,13 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     return thisTask;
 }
 
-//-(MyDownloadTask *)bindCell:(MyCell *)cell WithTaskURL:(NSString *)url{
-//    NSInteger identify = cell.identify;
-    //若cell复用了，则清除之前与task绑定的cell
-//    if ([_bindCellArray count] > identify) {
-//        if ([_bindCellArray[identify] length] > 0) {
-//            MyDownloadTask * thisTask = [self findTaskWithURL:_bindCellArray[identify]];
-//            thisTask.cell = nil;
-//        }
-//    }
-//    MyDownloadTask * thisTaskx = [self findTaskWithURL:url];
-//    thisTaskx.cell = cell;
-//    [_bindCellArray addObject:url];
-//    return [self findTaskWithURL:url];
-//}
-
-//-(void)unbindCells{
-//    for (MyDownloadTask * t in _downloadingTaskArray) {
-//        t.cell = nil;
-//    }
-//    for (MyDownloadTask * t in _finishedTaskArray) {
-//        t.cell = nil;
-//    }
-//    for (MyDownloadTask * t in _waitingTaskArray) {
-//        t.cell = nil;
-//    }
-//}
-
 //开启等待队列中的正在等待的对象,自动启动waiting，不自动启动pausing
 -(void)startNextWaitingTask{
     //如果还有别的等待下载的任务，就开启它
     //建立一个临时数组用来遍历用，因为不能同时对一个数组遍历和修改
     NSArray * tempArray = [NSArray arrayWithArray:_waitingTaskArray];
     for(MyDownloadTask * t in tempArray){
-        //等待队列处于等待状态数量的大于0 || 等待队列处于暂停状态的数量大于1（防止刚暂停的又开启了）&& 小于最大并行数
-//        if ((((t.taskState == WaitingState) && [_waitingTaskArray count] > 0) || ((t.taskState == PausingState) && [_waitingTaskArray count] > 1)) && [_downloadingTaskArray count] < MAX_ASYNC_NUM ) {
         if (t.taskState == WaitingState && [_downloadingTaskArray count] < MAX_ASYNC_NUM) {
-//            if (t.taskState == WaitingState) {
                 [t.downloadTask resume];
                 t.taskState = DownloadingState;
                 [_waitingTaskArray removeObject:t];
@@ -508,14 +434,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
             [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
                 t.updateBtnBlock(@"暂停");
             }];
-            
-                
-//            }
-            //  修改：不自动执行暂停的任务
-            //            else{
-            //                t.downloadTask = [_session downloadTaskWithResumeData:_resumeDataDictionary[t.taskUrl]];
-            //                [t.downloadTask resume];
-            //            }
         }
     }
     
@@ -532,8 +450,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
         if (thisTask.updateProgressBlock != nil) {
             thisTask.progress = [NSNumber numberWithDouble:(float)totalBytesWritten/totalBytesExpectedToWrite*100];
             thisTask.updateProgressBlock(thisTask.progress);
-//            thisTask.cell.percentLabel.text = [NSString stringWithFormat:@"%.2f %%",[thisTask.progress doubleValue]];
-//            [thisTask.cell.progressView setProgress:[thisTask.progress doubleValue]/100 animated:YES];
             //? can not to 100%
             NSLog(@"percent is%@",[NSString stringWithFormat:@"%.2f %%",(double)totalBytesWritten/totalBytesExpectedToWrite*100]);
         }
@@ -559,7 +475,6 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
                  [_alertView makeToast:@"网络或资源错误，请重新下载" duration:1.0 position:CSToastPositionCenter];
             }];
         }
-//        [self pauseAllTaskAndFiles:nil];
     }else{
         NSLog(@"seesion delegate : finish success");
     }
@@ -576,11 +491,8 @@ static const BOOL ALLOW_CELLULAR_ACCESS = NO;
     if (thisTask.updateProgressBlock != nil  && thisTask.updateBtnBlock!=nil) {
         [[NSOperationQueue mainQueue] addOperationWithBlock:^(){
             thisTask.updateBtnBlock(@"完成");
-//            [thisTask.cell.btn setTitle:@"完成" forState:UIControlStateNormal];
             //手动置100%，因为最后将要结束的时候更新UI会有延迟，比如说停在99.54%
             thisTask.updateProgressBlock([NSNumber numberWithInt:100]);
-//            [thisTask.cell.progressView setProgress:1.0 animated:YES];
-//            [thisTask.cell.percentLabel setText:@"100.00%"];
         }];
     }
 

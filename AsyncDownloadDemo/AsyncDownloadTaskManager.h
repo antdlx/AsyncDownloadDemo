@@ -75,10 +75,6 @@ typedef void (^ restartFailBlock)();
 -(void)restartDownloadTask:(nonnull MyDownloadTask *)task complete:(nullable restartBlock) block Fail:(nullable restartFailBlock)blockFail;
 //在下载队列和等待队列中根据URL寻找task
 -(nonnull MyDownloadTask *)findTaskWithURL:(nonnull NSString *)url;
-//将task与自定义cell进行绑定，用来更新UI等操作
-//-(nonnull MyDownloadTask *)bindCell:(nonnull MyCell *)cell WithTaskURL:(nonnull NSString *)url;
-//解除task对cell的持有，防止内存泄漏
-//-(void)unbindCells;
 //程序退出前所做的必要的保存状态
 -(void)saveBeforeExit;
 

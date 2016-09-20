@@ -18,9 +18,6 @@
 @property(nonatomic,strong) UILabel * percentLabel;
 @property(nonatomic,strong) UIButton * btn;
 @property(nonatomic,strong) UIButton * btnCancel;
-//用于绑定cell和task的唯一标识，每个cell都不一样，采用0,1,2的方案，为Manager中管理cell和Task绑定关系的bindCellArray做下标，即下标用这里的0，1，2，内容是Task的URL
-//@property(nonatomic,assign) NSInteger identify;
-//@property (nonatomic,strong) MyDownloadTask * downloadTask;
 //Cell上按钮的监听器
 @property (nonatomic,copy) void (^CancelHandlerBlock)();
 @property (nonatomic,copy) void (^StateHandlerBlock)();
